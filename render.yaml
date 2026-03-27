@@ -1,0 +1,30 @@
+# Render 部署配置
+services:
+  - type: web
+    name: keling-server
+    env: node
+    region: singapore
+    plan: free
+    rootDir: apps/server
+    buildCommand: npm install && npx prisma generate --schema=prisma/schema.postgresql.prisma && npx prisma migrate deploy --schema=prisma/schema.postgresql.prisma
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: keling-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_URL
+        value: https://api.deepseek.com/v1/chat/completions
+
+databases:
+  - name: keling-db
+    region: singapore
+    plan: free

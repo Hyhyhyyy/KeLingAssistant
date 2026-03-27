@@ -1,0 +1,506 @@
+/* 任务页面样式 */
+
+.tasks-container {
+  min-height: 100vh;
+  background: var(--color-dawn-white);
+  padding: 20px;
+  padding-bottom: 100px;
+}
+
+/* 页面标题 */
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  color: var(--color-earth-brown);
+  margin-bottom: 4px;
+}
+
+.page-header p {
+  font-size: 14px;
+  color: var(--color-earth-brown-light);
+}
+
+/* 统计卡片 */
+.stats-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-num {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--color-earth-brown-light);
+}
+
+.stat-card.pending .stat-num { color: #999; }
+.stat-card.progress .stat-num { color: #4ECDC4; }
+.stat-card.completed .stat-num { color: #4CAF50; }
+
+/* 活动计时器 */
+.active-timer {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-stellar-orange);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+
+.timer-display {
+  font-size: 18px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.btn-timer-stop {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* 筛选标签 */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.filter-tab {
+  background: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--color-earth-brown-light);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+  background: var(--color-dawn-white);
+}
+
+.filter-tab.active {
+  background: var(--color-stellar-orange);
+  color: white;
+}
+
+/* 任务列表 */
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--color-earth-brown-light);
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+}
+
+/* 任务卡片 */
+.task-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.task-card.timing {
+  border: 2px solid var(--color-stellar-orange);
+}
+
+.task-card.completed {
+  opacity: 0.7;
+}
+
+.task-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-type-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-info h4 {
+  font-size: 15px;
+  color: var(--color-earth-brown);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.course-tag {
+  background: rgba(232, 168, 124, 0.1);
+  color: var(--color-stellar-orange);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.time-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-earth-brown-light);
+}
+
+.status-tag {
+  font-weight: 500;
+}
+
+/* 任务右侧 */
+.task-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.task-rewards {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-stellar-orange);
+}
+
+.reward-item.crystals {
+  color: var(--color-moss-green);
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn.start {
+  background: var(--color-moss-green);
+  color: white;
+}
+
+.action-btn.start:hover {
+  background: #74b898;
+}
+
+.action-btn.complete {
+  background: #4CAF50;
+  color: white;
+}
+
+.action-btn.complete:hover {
+  background: #43a047;
+}
+
+.action-btn.delete {
+  background: transparent;
+  color: var(--color-earth-brown-light);
+}
+
+.action-btn.delete:hover {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+/* 任务计时器 */
+.task-timer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-stellar-orange);
+  color: white;
+  text-align: center;
+  padding: 8px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* 添加按钮 */
+.fab-add {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-stellar-orange);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+}
+
+/* 创建对话框 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.create-dialog {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 16px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.dialog-header h2 {
+  font-size: 16px;
+  color: var(--color-earth-brown);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--color-earth-brown-light);
+  cursor: pointer;
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--color-earth-brown);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* 类型选择器 */
+.type-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.type-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: var(--color-dawn-white);
+  border: 2px solid #eee;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.type-option:hover {
+  border-color: var(--color-stellar-orange);
+}
+
+.type-option.selected {
+  background: white;
+}
+
+.type-icon {
+  font-size: 20px;
+}
+
+.type-label {
+  font-size: 12px;
+  color: var(--color-earth-brown);
+}
+
+/* 时长滑块 */
+.duration-slider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.duration-slider input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  background: #eee;
+  border-radius: 2px;
+}
+
+.duration-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-stellar-orange);
+  cursor: pointer;
+}
+
+.duration-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-earth-brown);
+  min-width: 70px;
+  text-align: right;
+}
+
+/* 奖励预览 */
+.rewards-preview {
+  background: var(--color-dawn-white);
+  padding: 12px 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rewards-label {
+  font-size: 13px;
+  color: var(--color-earth-brown-light);
+}
+
+.rewards-values {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rewards-values span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.dialog-footer .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

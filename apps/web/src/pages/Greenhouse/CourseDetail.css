@@ -1,0 +1,414 @@
+/* 课程详情页面样式 */
+
+.course-detail-container {
+  min-height: 100vh;
+  background: var(--color-dawn-white);
+  padding-bottom: 100px;
+}
+
+/* 加载和错误状态 */
+.loading-container,
+.error-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--color-dawn-white);
+}
+
+/* 头部区域 */
+.course-header {
+  padding: 60px 20px 30px;
+  position: relative;
+  color: white;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.action-btn.delete:hover {
+  background: rgba(255, 100, 100, 0.5);
+}
+
+.header-content {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.course-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.header-content h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.course-code {
+  display: inline-block;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.course-meta {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.course-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 掌握度卡片 */
+.mastery-card {
+  background: white;
+  margin: -20px 16px 16px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 10;
+}
+
+.mastery-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: var(--color-earth-brown);
+}
+
+.mastery-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mastery-visual {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.mastery-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.mastery-circle svg {
+  width: 100%;
+  height: 100%;
+}
+
+.mastery-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.mastery-stats {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-earth-brown-light);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-earth-brown);
+}
+
+.stat-label {
+  font-size: 12px;
+}
+
+/* 快捷操作 */
+.quick-actions {
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.action-card:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-right: 12px;
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-content h4 {
+  font-size: 15px;
+  color: var(--color-earth-brown);
+  margin-bottom: 2px;
+}
+
+.action-content p {
+  font-size: 13px;
+  color: var(--color-earth-brown-light);
+}
+
+.chevron {
+  color: var(--color-earth-brown-light);
+}
+
+/* 知识点部分 */
+.knowledge-section {
+  padding: 0 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h3 {
+  font-size: 16px;
+  color: var(--color-earth-brown);
+  font-weight: 600;
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.empty-nodes {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  color: var(--color-earth-brown-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.empty-nodes:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.empty-nodes p {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.nodes-list {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.node-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.node-item:last-child {
+  border-bottom: none;
+}
+
+.node-item:hover {
+  background: var(--color-dawn-white);
+}
+
+.node-info {
+  flex: 1;
+}
+
+.node-info h4 {
+  font-size: 14px;
+  color: var(--color-earth-brown);
+  margin-bottom: 4px;
+}
+
+.node-desc {
+  font-size: 12px;
+  color: var(--color-earth-brown-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.node-mastery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-bar {
+  height: 4px;
+  width: 40px;
+  border-radius: 2px;
+}
+
+.node-mastery span {
+  font-size: 12px;
+  color: var(--color-earth-brown-light);
+  min-width: 36px;
+}
+
+/* 编辑对话框 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.edit-dialog {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.dialog-header h2 {
+  font-size: 16px;
+  color: var(--color-earth-brown);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--color-earth-brown-light);
+  cursor: pointer;
+}
+
+.dialog-content {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  color: var(--color-earth-brown);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+}

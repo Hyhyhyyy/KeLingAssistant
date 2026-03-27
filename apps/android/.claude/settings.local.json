@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "*",
+      "Bash(./gradlew compileDebugKotlin --no-daemon)"
+    ],
+    "defaultMode": "bypassPermissions"
+  }
+}

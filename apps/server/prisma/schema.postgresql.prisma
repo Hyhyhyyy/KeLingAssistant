@@ -1,0 +1,231 @@
+// KeLing 数据库模型定义 - PostgreSQL 生产版本
+// 与开发版本相同，只是数据库提供商不同
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户相关 ====================
+
+model User {
+  id                String   @id @default(uuid())
+  name              String   @default("星际园丁")
+  email             String   @unique
+  passwordHash      String
+  level             Int      @default(1)
+  exp               Int      @default(0)
+  energy            Int      @default(100)
+  crystals          Int      @default(10)
+  streakDays        Int      @default(0)
+  totalStudyMinutes Int      @default(0)
+  streakProtectionCards Int  @default(0)
+  lastCheckInDate   String?
+  avatarUrl         String?
+  bio               String   @default("")
+  weeklyStudyGoal   Int      @default(300)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // 关联
+  courses           Course[]
+  tasks             Task[]
+  notes             Note[]
+  achievements      UserAchievement[]
+  checkInRecords    CheckInRecord[]
+  studyRecords      StudyRecord[]
+  chatHistory       ChatHistory[]
+
+  @@map("users")
+}
+
+// ==================== 课程与知识 ====================
+
+model Course {
+  id                String   @id @default(uuid())
+  userId            String
+  name              String
+  code              String
+  teacher           String
+  schedule          String   @default("[]")  // JSON: ScheduleSlot[]
+  location          String   @default("")
+  themeColor        String   @default("#E8A87C")
+  masteryLevel      Float    @default(0)
+  plantStage        Int      @default(0)
+  planetStyleIndex  Int      @default(-1)
+  lastStudiedAt     DateTime?
+  totalStudyMinutes Int      @default(0)
+  isArchived        Boolean  @default(false)
+  semester          String?
+  credit            Int      @default(0)
+  examDate          DateTime?
+  courseImageUrl    String?
+  studySessionCount Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // 关联
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  knowledgeNodes    KnowledgeNode[]
+
+  @@map("courses")
+}
+
+model KnowledgeNode {
+  id            String   @id @default(uuid())
+  courseId      String
+  name          String
+  description   String   @default("")
+  parentIds     String   @default("[]")  // JSON: string[]
+  childIds      String   @default("[]")  // JSON: string[]
+  difficulty    Int      @default(3)
+  masteryLevel  Float    @default(0)
+  positionX     Float    @default(0.5)
+  positionY     Float    @default(0.5)
+  isUnlocked    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 关联
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("knowledge_nodes")
+}
+
+// ==================== 任务系统 ====================
+
+model Task {
+  id               String    @id @default(uuid())
+  userId           String
+  title            String
+  description      String
+  type             String    // TaskType enum
+  courseId         String?
+  knowledgeNodeIds String    @default("[]")  // JSON: string[]
+  status           String    @default("PENDING")  // TaskStatus enum
+  priority         Int       @default(3)
+  estimatedMinutes Int       @default(25)
+  actualMinutes    Int?
+  rewardsEnergy    Int       @default(10)
+  rewardsCrystals  Int       @default(5)
+  rewardsExp       Int       @default(20)
+  scheduledAt      DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // 关联
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+// ==================== 笔记系统 ====================
+
+model Note {
+  id              String   @id @default(uuid())
+  userId          String
+  title           String
+  content         String
+  sourceType      String   // NoteSource enum
+  aiExplanation   String?
+  relatedNodeIds  String   @default("[]")  // JSON: string[]
+  tags            String   @default("[]")  // JSON: string[]
+  reviewCount     Int      @default(0)
+  lastReviewedAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 关联
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+// ==================== 成就系统 ====================
+
+model Achievement {
+  id              String   @id
+  name            String
+  description     String
+  icon            String
+  category        String   // AchievementCategory enum
+  requirement     String   @default("")
+  rewardEnergy    Int      @default(50)
+  rewardCrystals  Int      @default(30)
+  maxProgress     Int      @default(1)
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id           String    @id @default(uuid())
+  userId       String
+  achievementId String
+  isUnlocked   Boolean   @default(false)
+  progress     Int       @default(0)
+  unlockedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  // 关联
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+// ==================== 签到系统 ====================
+
+model CheckInRecord {
+  id             String   @id @default(uuid())
+  userId         String
+  date           String   // YYYYMMDD format
+  rewardReceived Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  // 关联
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("check_in_records")
+}
+
+// ==================== 学习记录 ====================
+
+model StudyRecord {
+  id              String   @id @default(uuid())
+  userId          String
+  courseId        String?
+  taskId          String?
+  type            String   // StudyType enum
+  durationMinutes Int
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+
+  // 关联
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("study_records")
+}
+
+// ==================== 对话历史 ====================
+
+model ChatHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  sessionId  String
+  role       String   // user / assistant
+  content    String
+  toolUsed   String?
+  toolResult String?
+  createdAt  DateTime @default(now())
+
+  // 关联
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_history")
+}
