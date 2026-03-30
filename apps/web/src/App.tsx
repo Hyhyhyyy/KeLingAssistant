@@ -24,17 +24,32 @@ const queryClient = new QueryClient();
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading, loadUser } = useAppStore();
   const [checked, setChecked] = React.useState(false);
+  const [timeoutReached, setTimeoutReached] = React.useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+
+    // 超时保护：5秒后自动完成检查
+    const timeoutId = setTimeout(() => {
+      setTimeoutReached(true);
+      setChecked(true);
+    }, 5000);
+
     if (token && !isAuthenticated) {
-      loadUser().finally(() => setChecked(true));
+      loadUser()
+        .finally(() => {
+          clearTimeout(timeoutId);
+          setChecked(true);
+        });
     } else {
+      clearTimeout(timeoutId);
       setChecked(true);
     }
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
-  if (isLoading || !checked) {
+  if ((isLoading || !checked) && !timeoutReached) {
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>
