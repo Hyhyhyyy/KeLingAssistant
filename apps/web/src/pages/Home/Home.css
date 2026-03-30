@@ -3,6 +3,8 @@
 .home-page {
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 100vh;
+  background-repeat: no-repeat;
 }
 
 /* 欢迎区域 */
@@ -12,9 +14,27 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 24px 32px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   border-radius: 16px;
   color: white;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.welcome-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  z-index: 0;
+}
+
+.welcome-section > * {
+  position: relative;
+  z-index: 1;
 }
 
 .welcome-text h1 {
@@ -66,7 +86,6 @@
 }
 
 .stat-card {
-  background: white;
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -74,6 +93,25 @@
   gap: 16px;
   border: 1px solid var(--border-color);
   transition: all 0.2s;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 0;
+}
+
+.stat-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .stat-card:hover {
@@ -142,11 +180,29 @@
   align-items: center;
   gap: 20px;
   padding: 24px;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s;
   color: white;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 0;
+}
+
+.ai-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .ai-card:hover {
@@ -185,10 +241,28 @@
 
 /* 区块 */
 .section {
-  background: white;
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 0;
+}
+
+.section > * {
+  position: relative;
+  z-index: 1;
 }
 
 .section-header {
@@ -394,10 +468,28 @@
 
 /* 快捷入口 */
 .quick-actions {
-  background: white;
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-actions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 0;
+}
+
+.quick-actions > * {
+  position: relative;
+  z-index: 1;
 }
 
 .quick-actions h3 {
@@ -448,10 +540,28 @@
 
 /* 学习统计 */
 .study-stats {
-  background: white;
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.study-stats::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 0;
+}
+
+.study-stats > * {
+  position: relative;
+  z-index: 1;
 }
 
 .study-stats h3 {

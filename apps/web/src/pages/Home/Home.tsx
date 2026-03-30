@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { motion } from 'framer-motion';
 import {
-  Sparkles, Target, BookOpen, Trophy,
-  Calendar, ChevronRight, Clock
+  Sparkles, Target, ChevronRight, Clock, Calendar
 } from 'lucide-react';
 import { checkinAPI } from '../../services/api';
 
@@ -18,6 +17,19 @@ import achievementsIcon from '../../assets/icons/achievements.jpg';
 import profileIcon from '../../assets/icons/profile.jpg';
 import greenhouseIcon from '../../assets/icons/greenhouse.jpg';
 import planetIcon from '../../assets/icons/planet.jpg';
+
+// 自定义背景
+import pageBg from '../../assets/backgrounds/page-bg.jpg';
+import welcomeBg from '../../assets/backgrounds/welcome-card-bg.jpg';
+import aiBg from '../../assets/backgrounds/ai-card-bg.jpg';
+import knowledgeBg from '../../assets/backgrounds/knowledge-card-bg.jpg';
+import tasksBg from '../../assets/backgrounds/tasks-card-bg.jpg';
+import quickEntryBg from '../../assets/backgrounds/quick-entry-bg.jpg';
+import weeklyStudyBg from '../../assets/backgrounds/weekly-study-bg.jpg';
+import energyStatBg from '../../assets/backgrounds/energy-stat-bg.jpg';
+import crystalsStatBg from '../../assets/backgrounds/crystals-stat-bg.jpg';
+import tasksStatBg from '../../assets/backgrounds/tasks-stat-bg.jpg';
+import streakStatBg from '../../assets/backgrounds/streak-stat-bg.jpg';
 
 import './Home.css';
 
@@ -65,10 +77,11 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="home-page">
+    <div className="home-page" style={{ backgroundImage: `url(${pageBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       {/* 欢迎区域 */}
       <motion.div
         className="welcome-section"
+        style={{ backgroundImage: `url(${welcomeBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -99,28 +112,28 @@ const Home: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="stat-card">
+        <div className="stat-card" style={{ backgroundImage: `url(${energyStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div className="stat-icon energy"><img src={energyIcon} alt="能量" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.energy || 0}</span>
             <span className="stat-label">能量</span>
           </div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ backgroundImage: `url(${crystalsStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div className="stat-icon crystals"><img src={crystalsIcon} alt="结晶" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.crystals || 0}</span>
             <span className="stat-label">结晶</span>
           </div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ backgroundImage: `url(${tasksStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div className="stat-icon tasks"><img src={tasksIcon} alt="任务" /></div>
           <div className="stat-content">
             <span className="stat-value">{pendingTasks.length}</span>
             <span className="stat-label">待完成任务</span>
           </div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ backgroundImage: `url(${streakStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div className="stat-icon streak"><img src={streakIcon} alt="连续签到" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.streakDays || 0}</span>
@@ -135,6 +148,7 @@ const Home: React.FC = () => {
           {/* AI 入口 */}
           <motion.div
             className="ai-card"
+            style={{ backgroundImage: `url(${aiBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -151,6 +165,7 @@ const Home: React.FC = () => {
           {/* 我的课程 */}
           <motion.section
             className="section"
+            style={{ backgroundImage: `url(${knowledgeBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -199,6 +214,7 @@ const Home: React.FC = () => {
           {/* 今日任务 */}
           <motion.section
             className="section"
+            style={{ backgroundImage: `url(${tasksBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -248,6 +264,7 @@ const Home: React.FC = () => {
           {/* 快捷入口 */}
           <motion.div
             className="quick-actions"
+            style={{ backgroundImage: `url(${quickEntryBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -276,6 +293,7 @@ const Home: React.FC = () => {
           {/* 学习统计 */}
           <motion.div
             className="study-stats"
+            style={{ backgroundImage: `url(${weeklyStudyBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
