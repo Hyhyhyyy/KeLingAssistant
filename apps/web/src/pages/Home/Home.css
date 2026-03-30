@@ -4,7 +4,10 @@
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 /* 欢迎区域 */
@@ -16,25 +19,9 @@
   padding: 24px 32px;
   border-radius: 16px;
   color: white;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  position: relative;
-}
-
-.welcome-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 16px;
-  z-index: 0;
-}
-
-.welcome-section > * {
-  position: relative;
-  z-index: 1;
 }
 
 .welcome-text h1 {
@@ -93,25 +80,9 @@
   gap: 16px;
   border: 1px solid var(--border-color);
   transition: all 0.2s;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.85);
-  z-index: 0;
-}
-
-.stat-card > * {
-  position: relative;
-  z-index: 1;
 }
 
 .stat-card:hover {
@@ -184,25 +155,9 @@
   cursor: pointer;
   transition: all 0.2s;
   color: white;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-
-.ai-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 0;
-}
-
-.ai-card > * {
-  position: relative;
-  z-index: 1;
 }
 
 .ai-card:hover {
@@ -244,25 +199,9 @@
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-
-.section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  z-index: 0;
-}
-
-.section > * {
-  position: relative;
-  z-index: 1;
 }
 
 .section-header {
@@ -471,25 +410,9 @@
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-
-.quick-actions::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  z-index: 0;
-}
-
-.quick-actions > * {
-  position: relative;
-  z-index: 1;
 }
 
 .quick-actions h3 {
@@ -543,25 +466,9 @@
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-
-.study-stats::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  z-index: 0;
-}
-
-.study-stats > * {
-  position: relative;
-  z-index: 1;
 }
 
 .study-stats h3 {
