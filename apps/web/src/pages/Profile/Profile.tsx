@@ -2,11 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  User, Zap, Gem, Calendar, Trophy,
   Settings, LogOut, ChevronRight, Target
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { checkinAPI } from '../../services/api';
+
+// 自定义图标
+import energyIcon from '../../assets/icons/energy.jpg';
+import crystalsIcon from '../../assets/icons/crystals.jpg';
+import streakIcon from '../../assets/icons/streak.jpg';
+import achievementsIcon from '../../assets/icons/achievements.jpg';
+import notesIcon from '../../assets/icons/notes.jpg';
+
 import './Profile.css';
 
 const Profile: React.FC = () => {
@@ -131,7 +138,7 @@ const Profile: React.FC = () => {
         transition={{ delay: 0.1 }}
       >
         <div className="resource-item energy">
-          <Zap size={20} />
+          <img src={energyIcon} alt="能量" className="resource-icon-img" />
           <div className="resource-info">
             <span className="resource-value">{user?.energy || 100}</span>
             <span className="resource-label">能量</span>
@@ -139,7 +146,7 @@ const Profile: React.FC = () => {
         </div>
         <div className="resource-divider" />
         <div className="resource-item crystals">
-          <Gem size={20} />
+          <img src={crystalsIcon} alt="结晶" className="resource-icon-img" />
           <div className="resource-info">
             <span className="resource-value">{user?.crystals || 10}</span>
             <span className="resource-label">结晶</span>
@@ -147,7 +154,7 @@ const Profile: React.FC = () => {
         </div>
         <div className="resource-divider" />
         <div className="resource-item streak">
-          <Calendar size={20} />
+          <img src={streakIcon} alt="连续签到" className="resource-icon-img" />
           <div className="resource-info">
             <span className="resource-value">{user?.streakDays || 0}</span>
             <span className="resource-label">连续签到</span>
@@ -238,16 +245,21 @@ const Profile: React.FC = () => {
         transition={{ delay: 0.4 }}
       >
         <div className="menu-item" onClick={() => navigate('/achievements')}>
-          <Trophy size={20} className="menu-icon" />
+          <img src={achievementsIcon} alt="成就" className="menu-icon-img" />
           <span>成就殿堂</span>
           <ChevronRight size={18} className="chevron" />
         </div>
+        <div className="menu-item" onClick={() => navigate('/study-report')}>
+          <span className="menu-icon-emoji">📊</span>
+          <span>学习报告</span>
+          <ChevronRight size={18} className="chevron" />
+        </div>
         <div className="menu-item" onClick={() => navigate('/notes')}>
-          <User size={20} className="menu-icon" />
+          <img src={notesIcon} alt="笔记" className="menu-icon-img" />
           <span>我的笔记</span>
           <ChevronRight size={18} className="chevron" />
         </div>
-        <div className="menu-item">
+        <div className="menu-item" onClick={() => navigate('/settings')}>
           <Settings size={20} className="menu-icon" />
           <span>设置</span>
           <ChevronRight size={18} className="chevron" />

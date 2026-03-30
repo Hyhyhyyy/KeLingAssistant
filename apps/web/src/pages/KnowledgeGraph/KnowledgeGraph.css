@@ -1,0 +1,409 @@
+/* 知识图谱思维导图页面样式 */
+
+.knowledge-graph-container {
+  min-height: 100vh;
+  background: var(--color-dawn-white);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部导航 */
+.graph-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.graph-header .back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--color-dawn-white);
+  color: var(--color-earth-brown);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.graph-header .back-btn:hover {
+  background: var(--color-stellar-orange);
+  color: white;
+}
+
+.header-info h1 {
+  font-size: 18px;
+  color: var(--color-earth-brown);
+  margin-bottom: 2px;
+}
+
+.header-info p {
+  font-size: 12px;
+  color: var(--color-earth-brown-light);
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-dawn-white);
+  color: var(--color-earth-brown);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+  background: var(--color-stellar-orange);
+  color: white;
+}
+
+.zoom-percent {
+  font-size: 14px;
+  color: var(--color-earth-brown);
+  min-width: 50px;
+  text-align: center;
+}
+
+/* 画布区域 */
+.graph-canvas {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  cursor: grab;
+}
+
+.graph-canvas:active {
+  cursor: grabbing;
+}
+
+.connections-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.nodes-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 思维导图节点 */
+.mind-map-node {
+  position: absolute;
+  min-width: 140px;
+  max-width: 180px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mind-map-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.node-name {
+  display: block;
+  font-size: 14px;
+  color: var(--color-earth-brown);
+  font-weight: 600;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-progress {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.node-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.node-mastery {
+  font-size: 11px;
+  color: var(--color-earth-brown-light);
+}
+
+/* 空状态 */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.empty-state h2 {
+  font-size: 18px;
+  color: var(--color-earth-brown);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: var(--color-earth-brown-light);
+  margin-bottom: 16px;
+}
+
+/* 图例卡片 */
+.legend-card {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.legend-card h3 {
+  font-size: 14px;
+  color: var(--color-earth-brown);
+  margin-bottom: 12px;
+}
+
+.legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-label {
+  font-size: 12px;
+  color: var(--color-earth-brown-light);
+}
+
+/* 添加按钮 */
+.add-node-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 16px;
+  background: var(--color-stellar-orange);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(232, 168, 124, 0.3);
+}
+
+/* 编辑对话框 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.node-edit-dialog {
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dialog-header h2 {
+  font-size: 18px;
+  color: var(--color-earth-brown);
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-dawn-white);
+  color: var(--color-earth-brown);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-content {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: var(--color-earth-brown);
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--color-earth-brown);
+  background: white;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-stellar-orange);
+}
+
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.range-value {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 14px;
+  color: var(--color-stellar-orange);
+}
+
+/* 难度选择器 */
+.difficulty-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.difficulty-option {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  color: var(--color-earth-brown);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.difficulty-option.selected {
+  border-color: var(--color-stellar-orange);
+  background: var(--color-stellar-orange);
+  color: white;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--color-stellar-orange);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #d4996e;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid #ddd;
+  color: var(--color-earth-brown);
+}
+
+.btn-outline:hover {
+  background: var(--color-dawn-white);
+}
+
+.btn-danger {
+  background: #F44336;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #d32f2f;
+}

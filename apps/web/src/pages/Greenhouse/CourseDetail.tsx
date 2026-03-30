@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, BookOpen, Clock, MapPin, User, Trash2,
-  Edit3, Target, Zap, ChevronRight
+  Edit3, Target, Zap, ChevronRight, GitBranch
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { courseAPI, knowledgeAPI } from '../../services/api';
@@ -214,6 +214,17 @@ const CourseDetail: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
+        <div className="action-card" onClick={() => navigate(`/knowledge-graph/${course.id}`)}>
+          <div className="action-icon" style={{ background: '#9C27B0' }}>
+            <GitBranch size={24} />
+          </div>
+          <div className="action-content">
+            <h4>知识图谱</h4>
+            <p>思维导图式学习</p>
+          </div>
+          <ChevronRight size={20} className="chevron" />
+        </div>
+
         <div className="action-card" onClick={() => navigate('/ai')}>
           <div className="action-icon" style={{ background: course.themeColor }}>
             <Zap size={24} />

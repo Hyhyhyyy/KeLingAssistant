@@ -14,6 +14,15 @@ import Tasks from './pages/Tasks/Tasks';
 import Profile from './pages/Profile/Profile';
 import Notes from './pages/Notes/Notes';
 import Achievements from './pages/Achievements/Achievements';
+import Settings from './pages/Settings/Settings';
+import StudyReport from './pages/StudyReport/StudyReport';
+import KnowledgeGraph from './pages/KnowledgeGraph/KnowledgeGraph';
+
+// 图标资源
+import energyIcon from './assets/icons/energy.jpg';
+import crystalsIcon from './assets/icons/crystals.jpg';
+import greenhouseIcon from './assets/icons/greenhouse.jpg';
+import notesIcon from './assets/icons/notes.jpg';
 
 // 样式
 import './styles/globals.css';
@@ -73,10 +82,11 @@ const TopNav: React.FC = () => {
 
   const navItems = [
     { path: '/', icon: '🏠', label: '首页' },
-    { path: '/greenhouse', icon: '🌍', label: '温室' },
+    { path: '/greenhouse', icon: greenhouseIcon, label: '温室', isImage: true },
     { path: '/ai', icon: '✨', label: 'AI助手' },
     { path: '/tasks', icon: '📋', label: '任务' },
-    { path: '/notes', icon: '📝', label: '笔记' },
+    { path: '/notes', icon: notesIcon, label: '笔记', isImage: true },
+    { path: '/study-report', icon: '📊', label: '报告' },
   ];
 
   const isActive = (path: string) => {
@@ -98,7 +108,11 @@ const TopNav: React.FC = () => {
             className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
             onClick={() => navigate(item.path)}
           >
-            <span className="nav-icon">{item.icon}</span>
+            {item.isImage ? (
+              <img src={item.icon as string} alt={item.label} className="nav-icon-img" />
+            ) : (
+              <span className="nav-icon">{item.icon}</span>
+            )}
             <span>{item.label}</span>
           </button>
         ))}
@@ -106,11 +120,22 @@ const TopNav: React.FC = () => {
 
       <div className="nav-user">
         <div className="user-stats">
-          <span className="stat energy">⚡ {user?.energy || 0}</span>
-          <span className="stat crystals">💎 {user?.crystals || 0}</span>
+          <span className="stat energy">
+            <img src={energyIcon} alt="能量" className="stat-icon-img" />
+            {user?.energy || 0}
+          </span>
+          <span className="stat crystals">
+            <img src={crystalsIcon} alt="结晶" className="stat-icon-img" />
+            {user?.crystals || 0}
+          </span>
         </div>
-        <div className="user-avatar" onClick={() => navigate('/profile')}>
-          {user?.name?.charAt(0) || '园'}
+        <div className="user-actions">
+          <button className="nav-settings-btn" onClick={() => navigate('/settings')}>
+            ⚙️
+          </button>
+          <div className="user-avatar" onClick={() => navigate('/profile')}>
+            {user?.name?.charAt(0) || '园'}
+          </div>
         </div>
       </div>
     </header>
@@ -215,6 +240,36 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Profile />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Settings />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/study-report"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <StudyReport />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-graph/:courseId"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <KnowledgeGraph />
                 </MainLayout>
               </ProtectedRoute>
             }

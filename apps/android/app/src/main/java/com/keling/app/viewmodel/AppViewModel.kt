@@ -9,11 +9,13 @@
 
 package com.keling.app.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.keling.app.data.*
+import com.keling.app.network.ApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,10 +24,14 @@ import java.util.Calendar
 import java.util.UUID
 
 /**
- * AppViewModel继承自ViewModel，这是Android架构组件
+ * AppViewModel继承自AndroidViewModel，这是Android架构组件
  * 所有数据都在这里集中管理，页面只负责显示
+ * 使用AndroidViewModel以便访问Application Context进行数据持久化
  */
-class AppViewModel : ViewModel() {
+class AppViewModel(application: Application) : AndroidViewModel(application) {
+
+    // ==================== 数据持久化仓库 ====================
+    private val dataRepository = DataRepository(application)
 
     // ==================== 用户数据 ====================
 
@@ -112,104 +118,171 @@ class AppViewModel : ViewModel() {
 
     /**
      * init块在ViewModel创建时执行
-     * 这里加载一些示例数据，实际应用应该从本地存储或网络加载
+     * 首先从本地加载持久化数据，然后可以从服务器同步
      */
     init {
-        loadSampleData()
+        // 从本地加载持久化的数据
+        loadLocalData()
     }
 
     /**
-     * 加载示例数据，方便开发和演示
+     * 从本地存储加载所有数据
      */
-    private fun loadSampleData() {
-        // 示例课程：高等数学（周一8:00、周三10:00）
-        val calculus = Course(
-            id = "course_1",
-            name = "高等数学",
-            code = "MA101",
-            teacher = "张教授",
-            schedule = listOf(
-                ScheduleSlot(dayOfWeek = 1, startHour = 8, startMinute = 0, durationMinutes = 105),
-                ScheduleSlot(dayOfWeek = 3, startHour = 10, startMinute = 0, durationMinutes = 105)
-            ),
-            location = "教学楼A301",
-            themeColor = 0xFF85CDA9, // 苔藓绿
-            masteryLevel = 0.78f,
-            plantStage = 3, // 开花期
-            planetStyleIndex = 0
+    private fun loadLocalData() {
+        viewModelScope.launch {
+            // 加载用户数据
+            dataRepository.userPrefs.getUser().collect { user ->
+                if (user.id.isNotEmpty()) {
+                    _currentUser.value = user
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            // 加载课程数据
+            dataRepository.courses.getCourses().collect { courses ->
+                _courses.value = courses
+            }
+        }
+
+        viewModelScope.launch {
+            // 加载任务数据
+            dataRepository.tasks.getTasks().collect { tasks ->
+                _tasks.value = tasks
+            }
+        }
+
+        viewModelScope.launch {
+            // 加载笔记数据
+            dataRepository.notes.getNotes().collect { notes ->
+                _notes.value = notes
+            }
+        }
+
+        viewModelScope.launch {
+            // 加载知识节点数据
+            dataRepository.knowledgeGraph.getNodes().collect { nodes ->
+                _knowledgeNodes.value = nodes
+            }
+        }
+    }
+
+    /**
+     * 保存所有数据到本地存储
+     * 在应用退出或数据变更时调用
+     */
+    fun saveAllData() {
+        viewModelScope.launch {
+            dataRepository.userPrefs.saveUser(_currentUser.value)
+            dataRepository.courses.saveCourses(_courses.value)
+            dataRepository.tasks.saveTasks(_tasks.value)
+            dataRepository.notes.saveNotes(_notes.value)
+            dataRepository.knowledgeGraph.saveNodes(_knowledgeNodes.value)
+        }
+    }
+
+    /**
+     * 从服务器同步用户数据
+     * 登录成功后调用此方法
+     */
+    fun syncFromServer(token: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                // 使用 ApiService 从服务器获取数据
+                val apiService = ApiService()
+
+                // 拉取课程数据
+                val coursesResult = apiService.courses.getAll(token)
+                if (coursesResult.isSuccess) {
+                    val coursesData = coursesResult.getOrNull()?.courses ?: emptyList()
+                    _courses.value = coursesData.map { data ->
+                        Course(
+                            id = data.id,
+                            name = data.name,
+                            code = data.code,
+                            teacher = data.teacher,
+                            location = data.location,
+                            themeColor = data.themeColor.removePrefix("#").toLong(16) or 0xFF000000,
+                            masteryLevel = data.masteryLevel.toFloat(),
+                            plantStage = data.plantStage,
+                            planetStyleIndex = data.planetStyleIndex,
+                            totalStudyMinutes = data.totalStudyMinutes,
+                            isArchived = data.isArchived,
+                            studySessionCount = data.studySessionCount
+                        )
+                    }
+                }
+
+                // 拉取任务数据
+                val tasksResult = apiService.tasks.getAll(token)
+                if (tasksResult.isSuccess) {
+                    val tasksData = tasksResult.getOrNull()?.tasks ?: emptyList()
+                    _tasks.value = tasksData.map { data ->
+                        Task(
+                            id = data.id,
+                            title = data.title,
+                            description = data.description,
+                            type = TaskType.valueOf(data.type),
+                            courseId = data.courseId,
+                            status = TaskStatus.valueOf(data.status),
+                            priority = data.priority,
+                            estimatedMinutes = data.estimatedMinutes,
+                            actualMinutes = data.actualMinutes,
+                            rewards = Rewards(
+                                energy = data.rewardsEnergy,
+                                crystals = data.rewardsCrystals,
+                                exp = data.rewardsExp
+                            )
+                        )
+                    }
+                }
+
+                // 拉取用户信息
+                val userResult = apiService.auth.getMe(token)
+                if (userResult.isSuccess) {
+                    val userData = userResult.getOrNull()?.user
+                    if (userData != null) {
+                        _currentUser.value = User(
+                            id = userData.id,
+                            name = userData.name,
+                            level = userData.level,
+                            exp = userData.exp,
+                            energy = userData.energy,
+                            crystals = userData.crystals,
+                            streakDays = userData.streakDays,
+                            totalStudyMinutes = userData.totalStudyMinutes,
+                            lastCheckInDate = userData.lastCheckInDate,
+                            createdAt = userData.createdAt?.let { try { it.toLong() } catch (e: Exception) { System.currentTimeMillis() } } ?: System.currentTimeMillis()
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // 同步失败，保持空数据
+                e.printStackTrace()
+            }
+        }
+    }
+
+    /**
+     * 清空所有数据（登出时调用）
+     */
+    fun clearAllData() {
+        _courses.value = emptyList()
+        _tasks.value = emptyList()
+        _knowledgeNodes.value = emptyList()
+        _notes.value = emptyList()
+        _studyRecords.value = emptyList()
+        _currentUser.value = User(
+            id = UUID.randomUUID().toString(),
+            name = "星际园丁"
         )
+    }
 
-        // 示例课程：大学英语（周二8:00、周四14:00）
-        val english = Course(
-            id = "course_2",
-            name = "大学英语",
-            code = "EN102",
-            teacher = "李老师",
-            schedule = listOf(
-                ScheduleSlot(dayOfWeek = 2, startHour = 8, startMinute = 0, durationMinutes = 95),
-                ScheduleSlot(dayOfWeek = 4, startHour = 14, startMinute = 0, durationMinutes = 95)
-            ),
-            location = "外语楼B202",
-            themeColor = 0xFFE8A87C, // 恒星橙
-            masteryLevel = 0.92f,
-            plantStage = 4, // 结果期
-            planetStyleIndex = 1
-        )
-
-        // 示例课程：物理（周一10:00、周五8:00）
-        val physics = Course(
-            id = "course_3",
-            name = "大学物理",
-            code = "PH103",
-            teacher = "王教授",
-            schedule = listOf(
-                ScheduleSlot(dayOfWeek = 1, startHour = 10, startMinute = 0, durationMinutes = 105),
-                ScheduleSlot(dayOfWeek = 5, startHour = 8, startMinute = 0, durationMinutes = 105)
-            ),
-            location = "实验楼C105",
-            themeColor = 0xFFC9A9A6, // 雾玫瑰
-            masteryLevel = 0.35f,
-            plantStage = 1, // 萌芽期
-            planetStyleIndex = 2
-        )
-
-        _courses.value = listOf(calculus, english, physics)
-
-        // 示例任务
-        val task1 = Task(
-            id = "task_1",
-            title = "高数·极限概念灌溉",
-            description = "完成极限定义专题练习，理解ε-δ语言",
-            type = TaskType.DAILY_CARE,
-            courseId = "course_1",
-            priority = 4,
-            estimatedMinutes = 25,
-            rewards = Rewards(energy = 15, crystals = 10, exp = 25)
-        )
-
-        val task2 = Task(
-            id = "task_2",
-            title = "英语·词汇开花仪式",
-            description = "CET-6核心词汇第3单元复习",
-            type = TaskType.REVIEW_RITUAL,
-            courseId = "course_2",
-            priority = 3,
-            estimatedMinutes = 15,
-            rewards = Rewards(energy = 10, crystals = 5, exp = 15)
-        )
-
-        val task3 = Task(
-            id = "task_3",
-            title = "物理·紧急灌溉",
-            description = "力学基础概念，已干旱3天！",
-            type = TaskType.DAILY_CARE,
-            courseId = "course_3",
-            priority = 5, // 最高优先级
-            estimatedMinutes = 30,
-            rewards = Rewards(energy = 20, crystals = 15, exp = 30)
-        )
-
-        _tasks.value = listOf(task1, task2, task3)
+    /**
+     * 更新当前用户信息（登录成功后）
+     */
+    fun updateUser(user: User) {
+        _currentUser.value = user
     }
 
     // ==================== 业务方法 ====================
@@ -240,6 +313,10 @@ class AppViewModel : ViewModel() {
      */
     fun addTask(task: Task) {
         _tasks.value = _tasks.value + task
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.tasks.saveTasks(_tasks.value)
+        }
     }
 
     /**
@@ -247,6 +324,10 @@ class AppViewModel : ViewModel() {
      */
     fun updateTask(task: Task) {
         _tasks.value = _tasks.value.map { if (it.id == task.id) task else it }
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.tasks.saveTasks(_tasks.value)
+        }
     }
 
     /**
@@ -254,6 +335,10 @@ class AppViewModel : ViewModel() {
      */
     fun deleteTask(taskId: String) {
         _tasks.value = _tasks.value.filter { it.id != taskId }
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.tasks.saveTasks(_tasks.value)
+        }
     }
 
     /**
@@ -425,6 +510,11 @@ class AppViewModel : ViewModel() {
         currentNodes.add(finalNode)
         _knowledgeNodes.value = currentNodes
 
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.knowledgeGraph.saveNodes(currentNodes)
+        }
+
         recomputeKnowledgeGraphLayout(finalNode.courseId)
 
         return finalNode
@@ -452,6 +542,11 @@ class AppViewModel : ViewModel() {
             }
 
         _knowledgeNodes.value = after
+
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.knowledgeGraph.saveNodes(after)
+        }
 
         recomputeKnowledgeGraphLayout(courseId)
 
@@ -561,6 +656,80 @@ class AppViewModel : ViewModel() {
         return _knowledgeNodes.value.filter { it.courseId == courseId }
     }
 
+    /**
+     * 为课程创建新的知识点节点，自动计算不重叠的位置
+     * @param courseId 课程ID
+     * @param name 节点名称
+     * @param parentName 父节点名称（可选，如果为空则连接到根节点）
+     * @param description 描述
+     */
+    fun createKnowledgeNode(
+        courseId: String,
+        name: String,
+        parentName: String? = null,
+        description: String = ""
+    ): KnowledgeNode? {
+        if (name.isBlank()) return null
+
+        val existingNodes = _knowledgeNodes.value.filter { it.courseId == courseId }
+
+        // 检查名称是否已存在
+        if (existingNodes.any { it.name == name }) {
+            return null // 名称已存在，避免重复
+        }
+
+        // 找到父节点
+        val parentNode = if (parentName != null) {
+            existingNodes.find { it.name == parentName }
+        } else {
+            // 如果没有指定父节点，连接到根节点
+            existingNodes.firstOrNull { it.parentIds.isEmpty() }
+        }
+
+        // 计算新节点的位置（避免重叠）
+        val siblingCount = parentNode?.childIds?.size ?: existingNodes.count { it.parentIds.isEmpty() }
+        val baseY = parentNode?.positionY ?: 0.5f
+        val offsetY = (siblingCount - existingNodes.count { it.parentIds.isEmpty() } / 2f) * 0.15f
+        val newX = (parentNode?.positionX ?: 0.1f) + 0.25f
+        val newY = (baseY + offsetY).coerceIn(0.1f, 0.9f)
+
+        val newNodeId = "kn_${courseId}_${System.currentTimeMillis()}"
+
+        val newNode = KnowledgeNode(
+            id = newNodeId,
+            courseId = courseId,
+            name = name,
+            description = description,
+            parentIds = if (parentNode != null) listOf(parentNode.id) else emptyList(),
+            childIds = emptyList(),
+            difficulty = 3,
+            masteryLevel = 0f,
+            positionX = newX.coerceIn(0.1f, 0.9f),
+            positionY = newY,
+            isUnlocked = true
+        )
+
+        // 如果有父节点，更新父节点的 childIds
+        if (parentNode != null) {
+            val updatedParent = parentNode.copy(
+                childIds = parentNode.childIds + newNodeId
+            )
+            _knowledgeNodes.value = _knowledgeNodes.value.map {
+                if (it.id == parentNode.id) updatedParent else it
+            }
+        }
+
+        // 添加新节点
+        _knowledgeNodes.value = _knowledgeNodes.value + newNode
+
+        // 自动保存
+        viewModelScope.launch {
+            dataRepository.knowledgeGraph.saveNodes(_knowledgeNodes.value)
+        }
+
+        return newNode
+    }
+
     fun openKnowledgeGraph(courseIdOrName: String, focusNodeId: String? = null) {
         val course = _courses.value.find { it.id == courseIdOrName || it.name == courseIdOrName }
         val finalCourseId = course?.id ?: courseIdOrName
@@ -578,6 +747,10 @@ class AppViewModel : ViewModel() {
      */
     fun addCourse(course: Course) {
         _courses.value = _courses.value + course
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value)
+        }
     }
 
     fun createCourse(name: String, planetStyleIndex: Int): Course? {
@@ -597,6 +770,28 @@ class AppViewModel : ViewModel() {
             planetStyleIndex = planetStyleIndex
         )
         _courses.value = _courses.value + course
+
+        // 自动创建根知识点节点（以课程名为节点名）
+        val rootNode = KnowledgeNode(
+            id = "kn_${newId}_root",
+            courseId = newId,
+            name = finalName,
+            description = "${finalName}的知识体系",
+            parentIds = emptyList(),
+            childIds = emptyList(),
+            difficulty = 1,
+            masteryLevel = 0f,
+            positionX = 0.1f,
+            positionY = 0.5f,
+            isUnlocked = true
+        )
+        _knowledgeNodes.value = _knowledgeNodes.value + rootNode
+
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value)
+            dataRepository.knowledgeGraph.saveNodes(_knowledgeNodes.value)
+        }
         return course
     }
 
@@ -609,6 +804,10 @@ class AppViewModel : ViewModel() {
                 course.copy(name = finalName, planetStyleIndex = planetStyleIndex)
             } else course
         }
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value)
+        }
     }
 
     /**
@@ -616,6 +815,10 @@ class AppViewModel : ViewModel() {
      */
     fun addNote(note: Note) {
         _notes.value = _notes.value + note
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.notes.saveNotes(_notes.value)
+        }
     }
 
     /**
@@ -623,6 +826,10 @@ class AppViewModel : ViewModel() {
      */
     fun updateUserName(newName: String) {
         _currentUser.value = _currentUser.value.copy(name = newName)
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.userPrefs.saveUser(_currentUser.value)
+        }
     }
 
     // ==================== 课表相关 ====================

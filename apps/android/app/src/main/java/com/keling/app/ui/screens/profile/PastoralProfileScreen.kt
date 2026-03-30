@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.keling.app.R
 import com.keling.app.data.Achievement
 import com.keling.app.data.CheckInRecord
@@ -310,25 +311,43 @@ private fun UserProfileCard(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                        Text(text = "🧑‍🚀", fontSize = 40.sp)
+                            // 显示用户头像或首字母
+                            if (!user.avatarUrl.isNullOrEmpty()) {
+                                // 使用 AsyncImage 加载网络头像
+                                AsyncImage(
+                                    model = user.avatarUrl,
+                                    contentDescription = "用户头像",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                // 显示用户名首字母
+                                Text(
+                                    text = user.name.firstOrNull()?.toString() ?: "🧑‍🚀",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = if (user.name.isNotEmpty()) 36.sp else 40.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // 等级徽章
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                        shape = RoundedCornerShape(8.dp),
+                        color = MintGreen
+                    ) {
+                        Text(
+                            text = "Lv.${user.level}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
                 }
-
-                // 等级徽章
-                Surface(
-                    modifier = Modifier.align(Alignment.BottomEnd),
-                    shape = RoundedCornerShape(8.dp),
-                    color = MintGreen
-                ) {
-                    Text(
-                        text = "Lv.${user.level}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

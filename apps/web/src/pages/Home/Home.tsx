@@ -3,10 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import { motion } from 'framer-motion';
 import {
-  Sparkles, Zap, Gem, Target, BookOpen, Trophy,
-  Calendar, ChevronRight, Clock, TrendingUp
+  Sparkles, Target, BookOpen, Trophy,
+  Calendar, ChevronRight, Clock
 } from 'lucide-react';
 import { checkinAPI } from '../../services/api';
+
+// 自定义图标
+import energyIcon from '../../assets/icons/energy.jpg';
+import crystalsIcon from '../../assets/icons/crystals.jpg';
+import tasksIcon from '../../assets/icons/tasks.jpg';
+import streakIcon from '../../assets/icons/streak.jpg';
+import notesIcon from '../../assets/icons/notes.jpg';
+import achievementsIcon from '../../assets/icons/achievements.jpg';
+import profileIcon from '../../assets/icons/profile.jpg';
+import greenhouseIcon from '../../assets/icons/greenhouse.jpg';
+import planetIcon from '../../assets/icons/planet.jpg';
+
 import './Home.css';
 
 const Home: React.FC = () => {
@@ -88,28 +100,28 @@ const Home: React.FC = () => {
         transition={{ delay: 0.1 }}
       >
         <div className="stat-card">
-          <div className="stat-icon energy"><Zap size={20} /></div>
+          <div className="stat-icon energy"><img src={energyIcon} alt="能量" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.energy || 0}</span>
             <span className="stat-label">能量</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon crystals"><Gem size={20} /></div>
+          <div className="stat-icon crystals"><img src={crystalsIcon} alt="结晶" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.crystals || 0}</span>
             <span className="stat-label">结晶</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon tasks"><Target size={20} /></div>
+          <div className="stat-icon tasks"><img src={tasksIcon} alt="任务" /></div>
           <div className="stat-content">
             <span className="stat-value">{pendingTasks.length}</span>
             <span className="stat-label">待完成任务</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon streak"><TrendingUp size={20} /></div>
+          <div className="stat-icon streak"><img src={streakIcon} alt="连续签到" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.streakDays || 0}</span>
             <span className="stat-label">连续签到</span>
@@ -152,7 +164,7 @@ const Home: React.FC = () => {
 
             {courses.length === 0 ? (
               <div className="empty-card" onClick={() => navigate('/greenhouse')}>
-                <div className="empty-icon">🌍</div>
+                <div className="empty-icon"><img src={planetIcon} alt="星球" className="planet-icon-img" /></div>
                 <p>创建你的第一颗知识星球</p>
               </div>
             ) : (
@@ -243,19 +255,19 @@ const Home: React.FC = () => {
             <h3>快捷入口</h3>
             <div className="actions-grid">
               <div className="action-item" onClick={() => navigate('/notes')}>
-                <BookOpen size={24} />
+                <img src={notesIcon} alt="笔记" className="action-icon-img" />
                 <span>笔记</span>
               </div>
               <div className="action-item" onClick={() => navigate('/achievements')}>
-                <Trophy size={24} />
+                <img src={achievementsIcon} alt="成就" className="action-icon-img" />
                 <span>成就</span>
               </div>
               <div className="action-item" onClick={() => navigate('/profile')}>
-                <span className="action-emoji">👤</span>
+                <img src={profileIcon} alt="我的" className="action-icon-img" />
                 <span>我的</span>
               </div>
               <div className="action-item" onClick={() => navigate('/greenhouse')}>
-                <span className="action-emoji">🌍</span>
+                <img src={greenhouseIcon} alt="温室" className="action-icon-img" />
                 <span>温室</span>
               </div>
             </div>

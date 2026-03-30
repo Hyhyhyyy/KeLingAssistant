@@ -90,6 +90,12 @@
   justify-content: center;
 }
 
+.stat-icon img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .stat-icon.energy { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 .stat-icon.crystals { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 .stat-icon.tasks { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
@@ -233,6 +239,12 @@
 .empty-icon {
   font-size: 48px;
   margin-bottom: 12px;
+}
+
+.planet-icon-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
 }
 
 .empty-card p {
@@ -421,6 +433,12 @@
 
 .action-emoji {
   font-size: 24px;
+}
+
+.action-icon-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .action-item span:last-child {

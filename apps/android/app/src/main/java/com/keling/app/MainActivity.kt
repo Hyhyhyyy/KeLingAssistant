@@ -113,6 +113,11 @@ import com.keling.app.ui.screens.report.PastoralStudyReportScreen
 import com.keling.app.ui.screens.settings.PastoralSettingsScreen
 import com.keling.app.ui.screens.notes.PastoralNotesScreen
 import com.keling.app.ui.components.CheckInDialog
+import com.keling.app.ui.screens.auth.LoginScreen
+import com.keling.app.ui.screens.auth.RegisterScreen
+import com.keling.app.ui.screens.auth.AuthViewModel
+import com.keling.app.data.AuthState
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 class MainActivity : ComponentActivity() {
     /**
@@ -128,13 +133,279 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),  // 填满整个屏幕
                     color = DawnWhite                    // 背景色：黎明白
                 ) {
-                    // 获取ViewModel实例，用于管理应用状态和数据
-                    val viewModel: AppViewModel = viewModel()
-                    val currentScreen by viewModel.currentScreen
+                    // 认证视图模型
+                    val authViewModel: AuthViewModel = viewModel()
+                    val authState by authViewModel.authState.collectAsState()
 
-                    // 页面路由控制器：根据 currentScreen 的值显示不同页面
-                    // 类似网页的URL路由，但用字符串标识
-                    when (currentScreen) {
+                    // 登录/注册页面切换状态
+                    var showRegister by remember { mutableStateOf(false) }
+
+                    when (authState) {
+                        is AuthState.Loading -> {
+                            // 加载中页面
+                            LoadingScreen()
+                        }
+                        is AuthState.Unauthenticated -> {
+                            // 未登录，显示登录/注册页面
+                            if (showRegister) {
+                                RegisterScreen(
+                                    onRegisterSuccess = {
+                                        authViewModel.checkAuthState()
+                                    },
+                                    onNavigateToLogin = { showRegister = false }
+                                )
+                            } else {
+                                LoginScreen(
+                                    onLoginSuccess = {
+                                        // 登录成功后更新状态
+                                        authViewModel.checkAuthState()
+                                    },
+                                    onNavigateToRegister = { showRegister = true }
+                                )
+                            }
+                        }
+                        is AuthState.Authenticated -> {
+                            // 已登录，同步数据后显示主应用
+                            val authenticatedState = authState as AuthState.Authenticated
+                            val appViewModel: AppViewModel = viewModel()
+
+                            // 触发数据同步
+                            LaunchedEffect(authenticatedState.token) {
+                                appViewModel.syncFromServer(
+                                    token = authenticatedState.token,
+                                    userId = authenticatedState.userId
+                                )
+                            }
+
+                            MainAppContent(authViewModel = authViewModel)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 加载页面
+ */
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DawnWhite),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(
+                color = WarmSunOrange,
+                strokeWidth = 4.dp,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "课灵",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = EarthBrown
+            )
+        }
+    }
+}
+
+/**
+ * 主应用内容
+ */
+@Composable
+fun MainAppContent(authViewModel: AuthViewModel = viewModel()) {
+    // 获取ViewModel实例，用于管理应用状态和数据
+    val viewModel: AppViewModel = viewModel()
+    val currentScreen by viewModel.currentScreen
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // 登出确认对话框
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    // 版本更新对话框
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<com.keling.app.update.VersionInfo?>(null) }
+    var forceUpdate by remember { mutableStateOf(false) }
+
+    // 检查更新结果提示
+    var showNoUpdateToast by remember { mutableStateOf(false) }
+    var updateCheckError by remember { mutableStateOf<String?>(null) }
+    var isCheckingUpdate by remember { mutableStateOf(false) }
+
+    // 检查更新的函数
+    fun checkForUpdate() {
+        isCheckingUpdate = true
+        updateCheckError = null
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+            try {
+                val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    packageInfo.longVersionCode.toInt()
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageInfo.versionCode
+                }
+                val currentVersionName = packageInfo.versionName ?: "1.0.0"
+
+                val updateService = com.keling.app.update.UpdateService()
+                val result = updateService.checkUpdate(currentVersionCode, currentVersionName)
+
+                isCheckingUpdate = false
+
+                result.onSuccess { response ->
+                    if (response.needUpdate) {
+                        updateInfo = response.latestVersion
+                        forceUpdate = response.forceUpdate
+                        showUpdateDialog = true
+                    } else {
+                        showNoUpdateToast = true
+                    }
+                }
+                result.onFailure { error ->
+                    updateCheckError = error.message ?: "网络连接失败"
+                }
+            } catch (e: Exception) {
+                isCheckingUpdate = false
+                updateCheckError = e.message ?: "检查更新失败"
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // 启动时检查版本更新（延迟执行，等待服务器唤醒）
+    LaunchedEffect(Unit) {
+        // 延迟500ms后再检查，避免与应用初始化冲突
+        kotlinx.coroutines.delay(500)
+        checkForUpdate()
+    }
+
+    // 版本更新对话框
+    if (showUpdateDialog && updateInfo != null) {
+        com.keling.app.update.UpdateDialog(
+            versionInfo = updateInfo!!,
+            forceUpdate = forceUpdate,
+            onDismiss = { showUpdateDialog = false },
+            onConfirm = { showUpdateDialog = false }
+        )
+    }
+
+    // 已是最新版本提示
+    if (showNoUpdateToast) {
+        LaunchedEffect(showNoUpdateToast) {
+            kotlinx.coroutines.delay(2000)
+            showNoUpdateToast = false
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 100.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                color = MintGreen.copy(alpha = 0.9f),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "✓ 当前已是最新版本",
+                    color = DawnWhite,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+
+    // 检查更新中提示
+    if (isCheckingUpdate) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 100.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                color = WarmSunOrange.copy(alpha = 0.9f),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = DawnWhite,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "正在检查更新...",
+                        color = DawnWhite
+                    )
+                }
+            }
+        }
+    }
+
+    // 检查更新错误提示
+    updateCheckError?.let { error ->
+        LaunchedEffect(error) {
+            kotlinx.coroutines.delay(4000)
+            updateCheckError = null
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 100.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                color = RoseRed.copy(alpha = 0.9f),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "检查更新失败: $error",
+                    color = DawnWhite,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("确认退出登录？") },
+            text = { Text("退出后数据将清空，下次登录需重新同步。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    authViewModel.logout()
+                    viewModel.clearAllData()
+                    showLogoutDialog = false
+                }) {
+                    Text("确认退出", color = WarmSunOrange)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+
+    // 页面路由控制器：根据 currentScreen 的值显示不同页面
+    // 类似网页的URL路由，但用字符串标识
+    when (currentScreen) {
                         "home" -> PastoralHomeScreen(
                             viewModel = viewModel,
                             onNavigate = { screen -> viewModel.navigateTo(screen) }
@@ -202,7 +473,9 @@ class MainActivity : ComponentActivity() {
                         "settings" -> PastoralSettingsScreen(
                             onBack = { viewModel.navigateTo("home") },
                             onNavigateToProfile = { viewModel.navigateTo("profile") },
-                            onNavigateToAchievements = { viewModel.navigateTo("achievements") }
+                            onNavigateToAchievements = { viewModel.navigateTo("achievements") },
+                            onLogout = { showLogoutDialog = true },
+                            onCheckUpdate = { checkForUpdate() }
                         )
                         "notes" -> PastoralNotesScreen(
                             viewModel = viewModel,
@@ -222,10 +495,6 @@ class MainActivity : ComponentActivity() {
                             onDismiss = { viewModel.hideCheckInDialog() }
                         )
                     }
-                }
-            }
-        }
-    }
 }
 
 // ==================== 首页：星际导航 ====================
@@ -3392,14 +3661,15 @@ private fun KnowledgeNodeChip(
 // ==================== 预览 ====================
 
 /**
- * 首页预览
- * 在Android Studio的设计视图中查看效果
- */
+     * 首页预览
+     * 在Android Studio的设计视图中查看效果
+     */
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
+    val context = androidx.compose.ui.platform.LocalContext.current
     KeLingTheme {
-        HomeScreen(viewModel = AppViewModel(), onNavigate = {})
+        HomeScreen(viewModel = AppViewModel(context.applicationContext as android.app.Application), onNavigate = {})
     }
 }
 
@@ -4002,41 +4272,44 @@ private fun sendMessage(
                 messages += userMessage
                 messages += baseAiMessage
 
-                // 解析并执行工具指令（如果有）
-                val cmd = ToolCommandParser.parse(response.toolCommandJson)
-                if (cmd != null) {
-                    if (cmd.action == ToolAction.CREATE_TASK) {
-                        // 对于"创建任务"类操作，先走用户二次确认，不立刻写入任务系统
-                        onPendingCreate(cmd)
-                    } else {
-                        val result = toolExecutor.execute(cmd)
+                // 解析并执行工具指令（支持多指令）
+                val commands = ToolCommandParser.parseMultiple(response.toolCommandJson)
+                if (commands.isNotEmpty()) {
+                    for (cmd in commands) {
+                        if (cmd.action == ToolAction.CREATE_TASK) {
+                            // 对于"创建任务"类操作，先走用户二次确认，不立刻写入任务系统
+                            onPendingCreate(cmd)
+                        } else {
+                            val result = toolExecutor.execute(cmd)
 
-                        // 知识图谱相关：生成后在聊天区域给出"卡片预览 + 定位入口"
-                        if (
-                            cmd.action == ToolAction.UPSERT_KG_NODE ||
-                            cmd.action == ToolAction.DELETE_KG_NODE ||
-                            cmd.action == ToolAction.UPDATE_KG_NODE ||
-                            cmd.action == ToolAction.LIST_KG_NODES
-                        ) {
-                            val params = json.parseToJsonElement(cmd.rawParamsJson).jsonObject
-                            val courseIdOrName = (params["courseId"] as? kotlinx.serialization.json.JsonPrimitive)?.content
-                            val name = (params["name"] as? kotlinx.serialization.json.JsonPrimitive)?.content
+                            // 知识图谱相关：生成后在聊天区域给出"卡片预览 + 定位入口"
+                            if (
+                                cmd.action == ToolAction.UPSERT_KG_NODE ||
+                                cmd.action == ToolAction.DELETE_KG_NODE ||
+                                cmd.action == ToolAction.UPDATE_KG_NODE ||
+                                cmd.action == ToolAction.LIST_KG_NODES ||
+                                cmd.action == ToolAction.BATCH_UPSERT_KG_NODES
+                            ) {
+                                val params = json.parseToJsonElement(cmd.rawParamsJson).jsonObject
+                                val courseIdOrName = (params["courseId"] as? kotlinx.serialization.json.JsonPrimitive)?.content
+                                val name = (params["name"] as? kotlinx.serialization.json.JsonPrimitive)?.content
 
-                            if (!courseIdOrName.isNullOrBlank()) {
-                                val focusName = when (cmd.action) {
-                                    ToolAction.LIST_KG_NODES, ToolAction.DELETE_KG_NODE -> null
-                                    else -> name
+                                if (!courseIdOrName.isNullOrBlank()) {
+                                    val focusName = when (cmd.action) {
+                                        ToolAction.LIST_KG_NODES, ToolAction.DELETE_KG_NODE, ToolAction.BATCH_UPSERT_KG_NODES -> null
+                                        else -> name
+                                    }
+                                    onKnowledgeGraphPreview(courseIdOrName, focusName)
                                 }
-                                onKnowledgeGraphPreview(courseIdOrName, focusName)
                             }
-                        }
 
-                        if (result.message.isNotBlank()) {
-                            messages += ChatMessageUi(
-                                content = result.message,
-                                isUser = false,
-                                type = if (result.success) ResponseType.GENERAL else ResponseType.ERROR
-                            )
+                            if (result.message.isNotBlank()) {
+                                messages += ChatMessageUi(
+                                    content = result.message,
+                                    isUser = false,
+                                    type = if (result.success) ResponseType.GENERAL else ResponseType.ERROR
+                                )
+                            }
                         }
                     }
                 }

@@ -89,7 +89,8 @@ val PLANET_ASSETS = listOf(
 )
 
 fun getPlanetAsset(index: Int): String {
-    return PLANET_ASSETS.getOrNull(index % PLANET_ASSETS.size) ?: PLANET_ASSETS.first()
+    val assetName = PLANET_ASSETS.getOrNull(index % PLANET_ASSETS.size) ?: PLANET_ASSETS.first()
+    return assetName  // 直接返回文件名，不带前缀
 }
 
 // ==================== 主页面 ====================

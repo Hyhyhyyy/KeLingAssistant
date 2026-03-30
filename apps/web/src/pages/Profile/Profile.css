@@ -103,6 +103,12 @@
 .resource-item.crystals { color: var(--color-moss-green); }
 .resource-item.streak { color: #4ECDC4; }
 
+.resource-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .resource-info {
   display: flex;
   flex-direction: column;
@@ -280,6 +286,18 @@
 
 .menu-icon {
   color: var(--color-stellar-orange);
+  margin-right: 12px;
+}
+
+.menu-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-right: 12px;
+}
+
+.menu-icon-emoji {
+  font-size: 20px;
   margin-right: 12px;
 }
 

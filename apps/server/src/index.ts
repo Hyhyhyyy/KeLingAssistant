@@ -52,18 +52,20 @@ app.get('/api/health', (req, res) => {
 
 // 最新版本信息（可通过环境变量或数据库配置）
 const APP_VERSION = {
-  versionCode: 4,        // 比当前APK的versionCode(3)大
-  versionName: '3.0.3',  // 新版本号
+  versionCode: 5,        // 比当前APK的versionCode(4)大
+  versionName: '3.0.5',  // 新版本号
   minVersionCode: 1,     // 最低支持版本
   updateUrl: 'https://keling-server.onrender.com/api/app/download',  // APK下载地址
-  updateLog: `【课灵 3.0.3 更新内容】
-✨ 新用户初始状态为空数据，登录后同步个人数据
-✨ AI助手支持同时执行多个操作指令
-✨ 设置页面新增退出登录功能
-🔧 修复AI导航跳转问题
-🔧 修复星球外观图片显示问题`,
+  updateLog: `【课灵 3.0.5 更新内容】
+✨ 新增数据本地持久化，退出APP数据不丢失
+✨ 知识图谱支持可拖动编辑、曲线箭头连接
+✨ 笔记编辑器支持字体大小、颜色、高亮、分类
+✨ 个人中心头像显示用户头像
+✨ 优化检查更新功能，增加加载状态和错误提示
+🔧 修复星球图像显示问题
+🔧 修复数据不保存问题`,
   forceUpdate: false,    // 是否强制更新
-  fileSize: 48 * 1024 * 1024  // APK文件大小(字节)
+  fileSize: 50 * 1024 * 1024  // APK文件大小(字节)
 };
 
 // 版本检查接口
