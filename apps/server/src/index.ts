@@ -28,6 +28,8 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:3001',
     'http://10.0.2.2:3001',
+    'https://web-ashy-rho-36.vercel.app',
+    'https://web-ashy-rho-36.vercel.app/',
   ],
   credentials: true
 }));
