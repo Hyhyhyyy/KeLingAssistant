@@ -58,7 +58,7 @@ export const useAppStore = create<AppState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      isLoading: true,
+      isLoading: false, // 改为 false，避免初始加载卡住
       courses: [],
       tasks: [],
       notes: [],
