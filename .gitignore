@@ -43,6 +43,7 @@ apps/android/captures/
 # Prisma
 apps/server/prisma/*.db
 apps/server/prisma/*.db-journal
+apps/server/prisma/prisma/
 
 # Test coverage
 coverage/
