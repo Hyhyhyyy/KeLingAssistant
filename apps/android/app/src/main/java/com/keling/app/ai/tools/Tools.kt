@@ -187,6 +187,7 @@ class DefaultTaskTool(
  * 默认导航实现：基于 AppViewModel 内部的导航状态。
  *
  * - 仅允许跳转到白名单页面，避免模型输出任意字符串导致异常
+ * - 支持 courseId 参数跳转到具体课程页面
  */
 class DefaultNavigationTool(
     private val viewModel: AppViewModel
@@ -203,8 +204,19 @@ class DefaultNavigationTool(
             "schedule", "schedule_edit", "timetable", "课表" -> "schedule_edit"
             else -> "home"
         }
+
+        // 如果有 courseId，查找对应课程并跳转到课程详情页
+        if (!courseId.isNullOrBlank()) {
+            val course = viewModel.courses.value.find {
+                it.id == courseId || it.id == courseId || it.name.equals(courseId, ignoreCase = true)
+            }
+            if (course != null) {
+                viewModel.openCourseGreenhouse(course.id)
+                return
+            }
+        }
+
         viewModel.navigateTo(normalized)
-        // 目前未使用 courseId，后续可以在进入 greenhouse 时根据课程做进一步筛选
     }
 }
 

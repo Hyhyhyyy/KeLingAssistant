@@ -4,14 +4,14 @@ import { motion } from 'framer-motion';
 import {
   User, Trophy, LogOut, Bell, Clock, Calendar,
   Volume2, Vibrate, RefreshCw, BookOpen, MessageCircle,
-  Info, ChevronRight, X
+  Info, ChevronRight, X, Smartphone
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import './Settings.css';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
-  const { logout, user } = useAppStore();
+  const { logout } = useAppStore();
 
   // 设置状态
   const [notificationEnabled, setNotificationEnabled] = useState(true);
@@ -29,7 +29,12 @@ const Settings: React.FC = () => {
   };
 
   const handleCheckUpdate = () => {
-    alert('当前已是最新版本 v3.0.2');
+    alert('当前已是最新版本 v3.0.8');
+  };
+
+  const handleDownloadApp = () => {
+    // 打开APK下载页面
+    window.open('https://github.com/keling/keling/releases', '_blank');
   };
 
   return (
@@ -245,7 +250,17 @@ const Settings: React.FC = () => {
             </div>
             <div className="setting-content">
               <span className="setting-title">关于课灵</span>
-              <span className="setting-subtitle">版本 3.0.2</span>
+              <span className="setting-subtitle">版本 3.0.8</span>
+            </div>
+            <ChevronRight size={18} className="chevron" />
+          </div>
+          <div className="setting-item" onClick={handleDownloadApp}>
+            <div className="setting-icon mobile">
+              <Smartphone size={20} />
+            </div>
+            <div className="setting-content">
+              <span className="setting-title">下载移动端</span>
+              <span className="setting-subtitle">获取Android应用</span>
             </div>
             <ChevronRight size={18} className="chevron" />
           </div>
@@ -266,11 +281,17 @@ const Settings: React.FC = () => {
             </button>
             <div className="about-logo">✨</div>
             <h2>课灵 KeLing</h2>
-            <p className="version">版本 3.0.2</p>
+            <p className="version">版本 3.0.8</p>
             <p className="description">
               一款AI驱动的学习管理应用<br />
               让学习像培育星球一样有趣
             </p>
+            <div className="about-links">
+              <button className="link-btn" onClick={handleDownloadApp}>
+                <Smartphone size={16} />
+                下载移动端
+              </button>
+            </div>
             <div className="about-footer">
               <p>开发者：课灵团队</p>
               <p>© 2024-2025 KeLing</p>

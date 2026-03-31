@@ -19,6 +19,7 @@ import com.keling.app.network.ApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.UUID
@@ -127,43 +128,88 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * 从本地存储加载所有数据
+     * 使用 first() 获取初始数据，避免 collect 的持续监听阻塞
      */
     private fun loadLocalData() {
         viewModelScope.launch {
-            // 加载用户数据
-            dataRepository.userPrefs.getUser().collect { user ->
-                if (user.id.isNotEmpty()) {
-                    _currentUser.value = user
+            // 加载用户数据 - 使用 first() 获取初始值
+            val savedUser = dataRepository.userPrefs.getUser().first()
+            if (savedUser.id.isNotEmpty()) {
+                // 有保存的用户数据，使用它
+                _currentUser.value = savedUser
+            } else {
+                // 首次启动，保存当前初始化的用户到 DataStore
+                dataRepository.userPrefs.saveUser(_currentUser.value)
+            }
+        }
+
+        viewModelScope.launch {
+            // 加载课程数据，分离已归档和未归档
+            val savedCourses = dataRepository.courses.getCourses().first()
+            _courses.value = savedCourses.filter { !it.isArchived }
+            _archivedCourses.value = savedCourses.filter { it.isArchived }
+        }
+
+        viewModelScope.launch {
+            // 加载任务数据
+            val savedTasks = dataRepository.tasks.getTasks().first()
+            _tasks.value = savedTasks
+        }
+
+        viewModelScope.launch {
+            // 加载笔记数据
+            val savedNotes = dataRepository.notes.getNotes().first()
+            _notes.value = savedNotes
+        }
+
+        viewModelScope.launch {
+            // 加载知识节点数据
+            val savedNodes = dataRepository.knowledgeGraph.getNodes().first()
+            _knowledgeNodes.value = savedNodes
+        }
+
+        viewModelScope.launch {
+            // 加载签到记录
+            val savedRecords = dataRepository.checkInRecords.getRecords().first()
+            _checkInRecords.value = savedRecords
+        }
+
+        viewModelScope.launch {
+            // 加载学习记录
+            val savedStudyRecords = dataRepository.studyRecords.getRecords().first()
+            _studyRecords.value = savedStudyRecords
+        }
+
+        viewModelScope.launch {
+            // 加载已解锁成就
+            val unlockedIds = dataRepository.achievements.getUnlockedIds().first()
+            if (unlockedIds.isNotEmpty()) {
+                _achievements.value = PREDEFINED_ACHIEVEMENTS.map { achievement ->
+                    if (unlockedIds.contains(achievement.id)) {
+                        achievement.copy(isUnlocked = true, unlockedAt = System.currentTimeMillis(), progress = achievement.maxProgress)
+                    } else {
+                        achievement
+                    }
                 }
             }
         }
 
         viewModelScope.launch {
-            // 加载课程数据
-            dataRepository.courses.getCourses().collect { courses ->
-                _courses.value = courses
-            }
+            // 加载学习会话
+            val savedSessions = dataRepository.studySessions.getSessions().first()
+            _studySessions.value = savedSessions
         }
 
         viewModelScope.launch {
-            // 加载任务数据
-            dataRepository.tasks.getTasks().collect { tasks ->
-                _tasks.value = tasks
-            }
+            // 加载番茄钟设置
+            val savedSettings = dataRepository.pomodoroSettings.getSettings().first()
+            _pomodoroSettings.value = savedSettings
         }
 
         viewModelScope.launch {
-            // 加载笔记数据
-            dataRepository.notes.getNotes().collect { notes ->
-                _notes.value = notes
-            }
-        }
-
-        viewModelScope.launch {
-            // 加载知识节点数据
-            dataRepository.knowledgeGraph.getNodes().collect { nodes ->
-                _knowledgeNodes.value = nodes
-            }
+            // 加载笔记附件
+            val savedAttachments = dataRepository.noteAttachments.getAttachments().first()
+            _noteAttachments.value = savedAttachments
         }
     }
 
@@ -178,6 +224,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             dataRepository.tasks.saveTasks(_tasks.value)
             dataRepository.notes.saveNotes(_notes.value)
             dataRepository.knowledgeGraph.saveNodes(_knowledgeNodes.value)
+            dataRepository.checkInRecords.saveRecords(_checkInRecords.value)
+            dataRepository.studyRecords.saveRecords(_studyRecords.value)
+            dataRepository.achievements.saveUnlockedIds(_achievements.value.filter { it.isUnlocked }.map { it.id })
+            dataRepository.studySessions.saveSessions(_studySessions.value)
+            dataRepository.pomodoroSettings.saveSettings(_pomodoroSettings.value)
+            dataRepository.noteAttachments.saveAttachments(_noteAttachments.value)
         }
     }
 
@@ -408,19 +460,24 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } else t
         }
         _tasks.value = updatedTasks
+        // 自动保存任务数据到本地
+        viewModelScope.launch {
+            dataRepository.tasks.saveTasks(_tasks.value)
+        }
 
         // 增加用户奖励 + 经验，并根据经验简单更新等级
         val user = _currentUser.value
         val newExp = user.exp + task.rewards.exp
         val (newLevel, normalizedExp) = computeLevel(user.level, newExp)
 
-        _currentUser.value = user.copy(
+        // 使用 updateUser 自动保存用户数据
+        updateUser { it.copy(
             level = newLevel,
             exp = normalizedExp,
-            energy = user.energy + task.rewards.energy,
-            crystals = user.crystals + task.rewards.crystals,
-            totalStudyMinutes = user.totalStudyMinutes + actualMinutes
-        )
+            energy = it.energy + task.rewards.energy,
+            crystals = it.crystals + task.rewards.crystals,
+            totalStudyMinutes = it.totalStudyMinutes + actualMinutes
+        ) }
     }
 
     /**
@@ -825,8 +882,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * 更新用户名称
      */
     fun updateUserName(newName: String) {
-        _currentUser.value = _currentUser.value.copy(name = newName)
-        // 自动保存到本地
+        updateUser { it.copy(name = newName) }
+    }
+
+    /**
+     * 统一的用户更新方法，自动保存到本地存储
+     */
+    private inline fun updateUser(transform: (User) -> User) {
+        _currentUser.value = transform(_currentUser.value)
         viewModelScope.launch {
             dataRepository.userPrefs.saveUser(_currentUser.value)
         }
@@ -849,6 +912,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         )
         val updated = course.copy(schedule = newSchedule)
         _courses.value = _courses.value.map { if (it.id == courseId) updated else it }
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value)
+        }
         return updated
     }
 
@@ -863,6 +930,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (newSchedule.size == course.schedule.size) return false
         val updated = course.copy(schedule = newSchedule)
         _courses.value = _courses.value.map { if (it.id == courseId) updated else it }
+        // 自动保存到本地
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value)
+        }
         return true
     }
 
@@ -963,10 +1034,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
             if (shouldUnlock) {
                 // 解锁成就，发放奖励
-                _currentUser.value = _currentUser.value.copy(
-                    energy = _currentUser.value.energy + achievement.rewardEnergy,
-                    crystals = _currentUser.value.crystals + achievement.rewardCrystals
-                )
+                updateUser { it.copy(
+                    energy = it.energy + achievement.rewardEnergy,
+                    crystals = it.crystals + achievement.rewardCrystals
+                ) }
                 achievement.copy(
                     isUnlocked = true,
                     unlockedAt = System.currentTimeMillis(),
@@ -978,6 +1049,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         _achievements.value = updatedAchievements
+        // 自动保存已解锁成就
+        viewModelScope.launch {
+            dataRepository.achievements.saveUnlockedIds(updatedAchievements.filter { it.isUnlocked }.map { it.id })
+        }
     }
 
     /**
@@ -1053,13 +1128,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             rewardReceived = true
         )
         _checkInRecords.value = _checkInRecords.value + record
+        // 自动保存签到记录
+        viewModelScope.launch {
+            dataRepository.checkInRecords.saveRecords(_checkInRecords.value)
+        }
 
         // 更新用户数据
-        _currentUser.value = _currentUser.value.copy(
-            energy = _currentUser.value.energy + reward.energy,
-            crystals = _currentUser.value.crystals + reward.crystals,
+        updateUser { it.copy(
+            energy = it.energy + reward.energy,
+            crystals = it.crystals + reward.crystals,
             streakDays = consecutiveDays
-        )
+        ) }
 
         // 检查成就
         checkAndUnlockAchievements()
@@ -1103,6 +1182,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             notes = notes
         )
         _studyRecords.value = _studyRecords.value + record
+        // 自动保存学习记录
+        viewModelScope.launch {
+            dataRepository.studyRecords.saveRecords(_studyRecords.value)
+        }
     }
 
     /**
@@ -1243,6 +1326,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val course = _courses.value.find { it.id == courseId } ?: return
         _courses.value = _courses.value.filter { it.id != courseId }
         _archivedCourses.value = _archivedCourses.value + course.copy(isArchived = true)
+        // 自动保存课程数据（包括已归档的）
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value + _archivedCourses.value)
+        }
     }
 
     /**
@@ -1252,6 +1339,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val course = _archivedCourses.value.find { it.id == courseId } ?: return
         _archivedCourses.value = _archivedCourses.value.filter { it.id != courseId }
         _courses.value = _courses.value + course.copy(isArchived = false)
+        // 自动保存课程数据（包括已归档的）
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value + _archivedCourses.value)
+        }
     }
 
     /**
@@ -1263,6 +1354,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         // 同时删除相关数据
         _tasks.value = _tasks.value.filter { it.courseId != courseId }
         _knowledgeNodes.value = _knowledgeNodes.value.filter { it.courseId != courseId }
+        // 自动保存所有变更到本地
+        viewModelScope.launch {
+            dataRepository.courses.saveCourses(_courses.value)
+            dataRepository.tasks.saveTasks(_tasks.value)
+            dataRepository.knowledgeGraph.saveNodes(_knowledgeNodes.value)
+        }
     }
 
     // ==================== 挑战系统 ====================
@@ -1299,11 +1396,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         // 发放已完成挑战的奖励
         _activeChallenges.value.filter { it.isCompleted && it.completedAt != null }.forEach { challenge ->
             if (challenge.progress >= challenge.target) {
-                _currentUser.value = _currentUser.value.copy(
-                    energy = _currentUser.value.energy + challenge.rewards.energy,
-                    crystals = _currentUser.value.crystals + challenge.rewards.crystals,
-                    exp = _currentUser.value.exp + challenge.rewards.exp
-                )
+                updateUser { it.copy(
+                    energy = it.energy + challenge.rewards.energy,
+                    crystals = it.crystals + challenge.rewards.crystals,
+                    exp = it.exp + challenge.rewards.exp
+                ) }
             }
         }
     }
@@ -1473,6 +1570,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
         _studySessions.value = _studySessions.value + completedSession
         _currentStudySession.value = null
+        // 自动保存学习会话
+        viewModelScope.launch {
+            dataRepository.studySessions.saveSessions(_studySessions.value)
+        }
 
         // 更新课程学习时间
         if (session.courseId != null) {
@@ -1485,12 +1586,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 } else course
             }
+            // 自动保存课程数据到本地
+            viewModelScope.launch {
+                dataRepository.courses.saveCourses(_courses.value)
+            }
         }
 
         // 更新用户总学习时间
-        _currentUser.value = _currentUser.value.copy(
-            totalStudyMinutes = _currentUser.value.totalStudyMinutes + durationMinutes
-        )
+        updateUser { it.copy(
+            totalStudyMinutes = it.totalStudyMinutes + durationMinutes
+        ) }
 
         // 更新挑战进度
         updateChallengeProgress(ChallengeType.DAILY_STUDY, durationMinutes)
@@ -1523,6 +1628,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _pomodoroSettings.value = settings
         if (!_isPomodoroRunning.value) {
             _pomodoroTimeLeft.value = settings.focusMinutes * 60
+        }
+        // 自动保存番茄钟设置
+        viewModelScope.launch {
+            dataRepository.pomodoroSettings.saveSettings(settings)
         }
     }
 
@@ -1592,6 +1701,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun addNoteAttachment(noteId: String, attachment: NoteAttachment) {
         val currentList = _noteAttachments.value[noteId] ?: emptyList()
         _noteAttachments.value = _noteAttachments.value + (noteId to currentList + attachment)
+        // 自动保存笔记附件
+        viewModelScope.launch {
+            dataRepository.noteAttachments.saveAttachments(_noteAttachments.value)
+        }
     }
 
     /**
@@ -1600,6 +1713,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun removeNoteAttachment(noteId: String, attachmentId: String) {
         val currentList = _noteAttachments.value[noteId] ?: return
         _noteAttachments.value = _noteAttachments.value + (noteId to currentList.filter { it.id != attachmentId })
+        // 自动保存笔记附件
+        viewModelScope.launch {
+            dataRepository.noteAttachments.saveAttachments(_noteAttachments.value)
+        }
     }
 
     /**
@@ -1617,9 +1734,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun useStreakProtectionCard(): Boolean {
         if (_currentUser.value.streakProtectionCards <= 0) return false
 
-        _currentUser.value = _currentUser.value.copy(
-            streakProtectionCards = _currentUser.value.streakProtectionCards - 1
-        )
+        updateUser { it.copy(
+            streakProtectionCards = it.streakProtectionCards - 1
+        ) }
         return true
     }
 
@@ -1627,9 +1744,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * 获得断签保护卡
      */
     fun earnStreakProtectionCard(count: Int = 1) {
-        _currentUser.value = _currentUser.value.copy(
-            streakProtectionCards = _currentUser.value.streakProtectionCards + count
-        )
+        updateUser { it.copy(
+            streakProtectionCards = it.streakProtectionCards + count
+        ) }
     }
 
     // ==================== 学习路径 ====================

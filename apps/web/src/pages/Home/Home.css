@@ -5,10 +5,9 @@
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
 }
 
 .home-page .content-wrapper {
@@ -25,7 +24,7 @@
   padding: 24px 32px;
   border-radius: 16px;
   color: white;
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -86,7 +85,7 @@
   gap: 16px;
   border: 1px solid var(--border-color);
   transition: all 0.2s;
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -161,7 +160,7 @@
   cursor: pointer;
   transition: all 0.2s;
   color: white;
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -205,7 +204,7 @@
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -416,7 +415,7 @@
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -472,7 +471,7 @@
   border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--border-color);
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
 }

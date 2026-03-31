@@ -72,7 +72,7 @@ const StudyReport: React.FC = () => {
     setIsLoading(false);
   };
 
-  const generateAIInsight = (user: any, courses: any[], tasks: any[], completedTasks: number) => {
+  const generateAIInsight = (user: any, courses: any[], _tasks: any[], completedTasks: number) => {
     const insights = [
       `本周你保持了良好的学习节奏，完成了 ${completedTasks} 个任务，展现了持之以恒的学习态度。`,
       `你的 ${courses.length} 门课程学习进度稳定，特别是掌握度较高的课程值得继续深入学习。`,
@@ -117,7 +117,7 @@ const StudyReport: React.FC = () => {
     return points;
   };
 
-  const generateSuggestions = (weakPoints: string[], user: any) => {
+  const generateSuggestions = (_weakPoints: string[], user: any) => {
     const suggestions: string[] = [];
     suggestions.push('建议每天安排固定的学习时间，培养稳定的学习习惯');
     suggestions.push('利用AI助手进行知识点梳理，加深理解');

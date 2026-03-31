@@ -11,13 +11,21 @@ data class AIResponse(
 
     /**
      * （可选）AI 建议执行的工具指令，JSON 字符串形式：
-     * {"action":"CREATE_TASK","params":{...}}
+     * 单个：{"action":"CREATE_TASK","params":{...}}
+     * 多个：[{"action":"CREATE_TASK","params":{...}},{"action":"GO_TO","params":{...}}]
      *
      * - UI 用于进一步解析并驱动应用内操作
      * - 为了兼容性，默认值为 null，不影响旧代码
      */
     val toolCommandJson: String? = null
-)
+) {
+    /**
+     * 获取所有工具指令（支持单指令和多指令格式）
+     */
+    fun getToolCommands(): List<ToolCommand> {
+        return ToolCommandParser.parseMultiple(toolCommandJson)
+    }
+}
 
 /**
  * 用于 UI 区分消息类型

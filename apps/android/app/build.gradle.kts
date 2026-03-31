@@ -41,9 +41,9 @@ android {
         targetSdk = 34
 
         // 版本号，每次更新应用要+1
-        versionCode = 3
+        versionCode = 7
         // 版本名称，用户看到的版本
-        versionName = "3.0.0"
+        versionName = "3.0.8"
 
         // 测试运行器，用于自动化测试（暂时不用管）
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -109,14 +109,6 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-
-    // 把 Cursor 工作区里提供的星球图片打包进 APK 的 assets 目录
-    // 代码中会用 `file:///android_asset/<文件名>` 来加载这些图片
-    sourceSets {
-        getByName("main") {
-            assets.srcDir("../../../.cursor/projects/c-Users-13581-Desktop-KeLing3-0/assets")
         }
     }
 }

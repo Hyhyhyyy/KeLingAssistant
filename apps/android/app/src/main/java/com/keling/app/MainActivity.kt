@@ -9,7 +9,11 @@ package com.keling.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.background
@@ -217,7 +221,7 @@ fun LoadingScreen() {
 }
 
 /**
- * 主应用内容
+ * 主应用内容 - 带固定底部导航栏
  */
 @Composable
 fun MainAppContent(authViewModel: AuthViewModel = viewModel()) {
@@ -230,6 +234,12 @@ fun MainAppContent(authViewModel: AuthViewModel = viewModel()) {
     // 登出确认对话框
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    // 退出确认对话框（双击返回键退出）
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    // 页面历史栈，用于返回键导航
+    val screenHistory = remember { mutableStateListOf("home") }
+
     // 版本更新对话框
     var showUpdateDialog by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf<com.keling.app.update.VersionInfo?>(null) }
@@ -239,6 +249,10 @@ fun MainAppContent(authViewModel: AuthViewModel = viewModel()) {
     var showNoUpdateToast by remember { mutableStateOf(false) }
     var updateCheckError by remember { mutableStateOf<String?>(null) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
+
+    // 主页面列表（显示底部导航栏）
+    val mainScreens = listOf("home", "greenhouse", "ai", "tasks", "profile")
+    val isMainScreen = currentScreen in mainScreens
 
     // 检查更新的函数
     fun checkForUpdate() {
@@ -282,7 +296,6 @@ fun MainAppContent(authViewModel: AuthViewModel = viewModel()) {
 
     // 启动时检查版本更新（延迟执行，等待服务器唤醒）
     LaunchedEffect(Unit) {
-        // 延迟500ms后再检查，避免与应用初始化冲突
         kotlinx.coroutines.delay(500)
         checkForUpdate()
     }
@@ -381,6 +394,7 @@ fun MainAppContent(authViewModel: AuthViewModel = viewModel()) {
         }
     }
 
+    // 登出确认对话框
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -403,98 +417,279 @@ fun MainAppContent(authViewModel: AuthViewModel = viewModel()) {
         )
     }
 
-    // 页面路由控制器：根据 currentScreen 的值显示不同页面
-    // 类似网页的URL路由，但用字符串标识
-    when (currentScreen) {
-                        "home" -> PastoralHomeScreen(
-                            viewModel = viewModel,
-                            onNavigate = { screen -> viewModel.navigateTo(screen) }
-                        )
-                        "ai" -> PastoralAIScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("home") }
-                        )
-                        "greenhouse" -> PastoralGreenhouseScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("home") }
-                        )
-                        "greenhouse_course" -> GreenhouseCourseScreen(
-                            viewModel = viewModel,
-                            onBack = {
-                                viewModel.clearSelectedCourse()
-                                viewModel.navigateTo("greenhouse")
-                            },
-                            onAskAI = { viewModel.navigateTo("ai") }
-                        )
-                        "knowledge_graph" -> MindMapKnowledgeGraphScreen(
-                            viewModel = viewModel,
-                            onBack = {
-                                viewModel.clearSelectedKnowledgeNode()
-                                viewModel.navigateTo("greenhouse_course")
-                            }
-                        )
-                        "tasks" -> PastoralTasksScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("home") }
-                        )
-                        "task_detail" -> TaskDetailScreen(
-                            viewModel = viewModel,
-                            onBack = {
-                                viewModel.clearSelectedTask()
-                                viewModel.navigateTo("tasks")
-                            },
-                            onAskAI = { viewModel.navigateTo("ai") }
-                        )
-                        "temple" -> TempleScreen(
-                            onBack = { viewModel.navigateTo("home") }
-                        )
-                        "nebula" -> NebulaScreen(
-                            onBack = { viewModel.navigateTo("home") }
-                        )
-                        "schedule_edit" -> ScheduleEditScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("home") }
-                        )
-                        "profile" -> PastoralProfileScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("home") },
-                            onNavigateToAchievements = { viewModel.navigateTo("achievements") },
-                            onNavigateToSettings = { viewModel.navigateTo("settings") },
-                            onNavigateToReport = { viewModel.navigateTo("report") }
-                        )
-                        "achievements" -> PastoralAchievementsScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("profile") }
-                        )
-                        "report" -> PastoralStudyReportScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("profile") }
-                        )
-                        "settings" -> PastoralSettingsScreen(
-                            onBack = { viewModel.navigateTo("home") },
-                            onNavigateToProfile = { viewModel.navigateTo("profile") },
-                            onNavigateToAchievements = { viewModel.navigateTo("achievements") },
-                            onLogout = { showLogoutDialog = true },
-                            onCheckUpdate = { checkForUpdate() }
-                        )
-                        "notes" -> PastoralNotesScreen(
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("home") },
-                            onAskAI = { viewModel.navigateTo("ai") }
-                        )
-                        else -> PastoralHomeScreen(
-                            viewModel = viewModel,
-                            onNavigate = { screen -> viewModel.navigateTo(screen) }
-                        )
-                    }
+    // 退出确认对话框
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("退出应用") },
+            text = { Text("确定要退出课灵吗？") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExitDialog = false
+                    (context as? android.app.Activity)?.finish()
+                }) {
+                    Text("退出", color = WarmSunOrange)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
 
-                    // 签到弹窗
-                    if (viewModel.showCheckInDialog.value) {
-                        CheckInDialog(
-                            viewModel = viewModel,
-                            onDismiss = { viewModel.hideCheckInDialog() }
-                        )
+    // 返回键处理
+    BackHandler(enabled = true) {
+        when {
+            // 如果在主页面，显示退出对话框
+            isMainScreen && currentScreen == "home" -> {
+                showExitDialog = true
+            }
+            // 如果在子页面，返回上一个页面
+            screenHistory.size > 1 -> {
+                screenHistory.removeLast()
+                val previousScreen = screenHistory.last()
+                viewModel.navigateTo(previousScreen)
+            }
+            // 其他主页面，返回首页
+            isMainScreen -> {
+                viewModel.navigateTo("home")
+                screenHistory.clear()
+                screenHistory.add("home")
+            }
+            // 子页面返回逻辑（根据具体页面决定返回目标）
+            else -> {
+                when (currentScreen) {
+                    "greenhouse_course" -> {
+                        viewModel.clearSelectedCourse()
+                        viewModel.navigateTo("greenhouse")
                     }
+                    "knowledge_graph" -> {
+                        viewModel.clearSelectedKnowledgeNode()
+                        viewModel.navigateTo("greenhouse_course")
+                    }
+                    "task_detail" -> {
+                        viewModel.clearSelectedTask()
+                        viewModel.navigateTo("tasks")
+                    }
+                    "achievements", "report" -> viewModel.navigateTo("profile")
+                    "settings" -> viewModel.navigateTo("home")
+                    else -> viewModel.navigateTo("home")
+                }
+            }
+        }
+    }
+
+    // 使用Scaffold布局，包含固定底部导航栏
+    Scaffold(
+        containerColor = DawnWhite,
+        bottomBar = {
+            // 只在主页面显示底部导航栏
+            if (isMainScreen) {
+                KeLingBottomNavigation(
+                    currentScreen = currentScreen,
+                    onNavigate = { screen ->
+                        if (screen != currentScreen) {
+                            viewModel.navigateTo(screen)
+                            screenHistory.add(screen)
+                        }
+                    }
+                )
+            }
+        }
+    ) { paddingValues ->
+        // 页面内容区域
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // 页面路由控制器
+            when (currentScreen) {
+                "home" -> PastoralHomeScreen(
+                    viewModel = viewModel,
+                    onNavigate = { screen ->
+                        viewModel.navigateTo(screen)
+                        if (screen in mainScreens) {
+                            screenHistory.add(screen)
+                        }
+                    }
+                )
+                "ai" -> PastoralAIScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("home") }
+                )
+                "greenhouse" -> PastoralGreenhouseScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("home") }
+                )
+                "greenhouse_course" -> GreenhouseCourseScreen(
+                    viewModel = viewModel,
+                    onBack = {
+                        viewModel.clearSelectedCourse()
+                        viewModel.navigateTo("greenhouse")
+                    },
+                    onAskAI = { viewModel.navigateTo("ai") }
+                )
+                "knowledge_graph" -> MindMapKnowledgeGraphScreen(
+                    viewModel = viewModel,
+                    onBack = {
+                        viewModel.clearSelectedKnowledgeNode()
+                        viewModel.navigateTo("greenhouse_course")
+                    }
+                )
+                "tasks" -> PastoralTasksScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("home") }
+                )
+                "task_detail" -> TaskDetailScreen(
+                    viewModel = viewModel,
+                    onBack = {
+                        viewModel.clearSelectedTask()
+                        viewModel.navigateTo("tasks")
+                    },
+                    onAskAI = { viewModel.navigateTo("ai") }
+                )
+                "temple" -> TempleScreen(
+                    onBack = { viewModel.navigateTo("home") }
+                )
+                "nebula" -> NebulaScreen(
+                    onBack = { viewModel.navigateTo("home") }
+                )
+                "schedule_edit" -> ScheduleEditScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("home") }
+                )
+                "profile" -> PastoralProfileScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("home") },
+                    onNavigateToAchievements = { viewModel.navigateTo("achievements") },
+                    onNavigateToSettings = { viewModel.navigateTo("settings") },
+                    onNavigateToReport = { viewModel.navigateTo("report") }
+                )
+                "achievements" -> PastoralAchievementsScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("profile") }
+                )
+                "report" -> PastoralStudyReportScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("profile") }
+                )
+                "settings" -> PastoralSettingsScreen(
+                    onBack = { viewModel.navigateTo("home") },
+                    onNavigateToProfile = { viewModel.navigateTo("profile") },
+                    onNavigateToAchievements = { viewModel.navigateTo("achievements") },
+                    onLogout = { showLogoutDialog = true },
+                    onCheckUpdate = { checkForUpdate() }
+                )
+                "notes" -> PastoralNotesScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.navigateTo("home") },
+                    onAskAI = { viewModel.navigateTo("ai") }
+                )
+                else -> PastoralHomeScreen(
+                    viewModel = viewModel,
+                    onNavigate = { screen ->
+                        viewModel.navigateTo(screen)
+                        if (screen in mainScreens) {
+                            screenHistory.add(screen)
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    // 签到弹窗
+    if (viewModel.showCheckInDialog.value) {
+        CheckInDialog(
+            viewModel = viewModel,
+            onDismiss = { viewModel.hideCheckInDialog() }
+        )
+    }
+}
+
+/**
+ * 课灵底部导航栏组件
+ */
+@Composable
+private fun KeLingBottomNavigation(
+    currentScreen: String,
+    onNavigate: (String) -> Unit
+) {
+    val items = listOf(
+        BottomNavItem("home", "首页", "🏠"),
+        BottomNavItem("greenhouse", "温室", "🌱"),
+        BottomNavItem("ai", "AI", "✨"),
+        BottomNavItem("tasks", "任务", "📋"),
+        BottomNavItem("profile", "我的", "👤")
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = DawnWhite,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            items.forEach { item ->
+                BottomNavItemView(
+                    item = item,
+                    isSelected = currentScreen == item.screen,
+                    onClick = { onNavigate(item.screen) }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 底部导航项数据类
+ */
+private data class BottomNavItem(
+    val screen: String,
+    val label: String,
+    val icon: String
+)
+
+/**
+ * 底部导航项视图
+ */
+@Composable
+private fun BottomNavItemView(
+    item: BottomNavItem,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor = if (isSelected) WarmSunOrange.copy(alpha = 0.1f) else Color.Transparent
+    val textColor = if (isSelected) WarmSunOrange else EarthBrown.copy(alpha = 0.6f)
+
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = item.icon,
+            fontSize = 24.sp
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = item.label,
+            fontSize = 12.sp,
+            color = textColor,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
 }
 
 // ==================== 首页：星际导航 ====================

@@ -46,11 +46,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.keling.app.R
 import com.keling.app.data.Achievement
-import com.keling.app.data.CheckInRecord
-import com.keling.app.ui.components.CheckInCalendar
 import com.keling.app.ui.theme.*
 import com.keling.app.viewmodel.AppViewModel
-import java.time.YearMonth
 
 @Composable
 fun PastoralProfileScreen(
@@ -63,11 +60,9 @@ fun PastoralProfileScreen(
     val user = viewModel.currentUser.value
     val statistics = viewModel.getStatisticsSummary()
     val achievements = viewModel.achievements.value
-    val checkInRecords = viewModel.checkInRecords.value
 
     var showEditNameDialog by remember { mutableStateOf(false) }
     var editingName by remember { mutableStateOf(user.name) }
-    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
     // 编辑名称对话框
     if (showEditNameDialog) {
@@ -128,15 +123,6 @@ fun PastoralProfileScreen(
                 StatisticsSection(
                     statistics = statistics,
                     onViewReport = onNavigateToReport
-                )
-            }
-
-            // 签到日历
-            item {
-                CheckInCalendarSection(
-                    records = checkInRecords,
-                    currentMonth = currentMonth,
-                    onMonthChange = { currentMonth = it }
                 )
             }
 
@@ -507,79 +493,6 @@ private fun StatisticsSection(
                     modifier = Modifier.weight(1f)
                 )
             }
-            }
-        }
-    }
-}
-
-/**
- * 签到日历区块
- */
-@Composable
-private fun CheckInCalendarSection(
-    records: List<CheckInRecord>,
-    currentMonth: YearMonth,
-    onMonthChange: (YearMonth) -> Unit
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "calendar")
-
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.08f,
-        targetValue = 0.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glow"
-    )
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .drawBehind {
-                drawRoundRect(
-                    color = MintGreen.copy(alpha = glowAlpha),
-                    cornerRadius = CornerRadius(24.dp.toPx()),
-                    size = Size(size.width + 6.dp.toPx(), size.height + 6.dp.toPx()),
-                    topLeft = Offset(-3.dp.toPx(), -3.dp.toPx())
-                )
-            },
-        shape = RoundedCornerShape(20.dp),
-        color = CreamWhite.copy(alpha = 0.9f),
-        shadowElevation = 0.dp
-    ) {
-        Box {
-            Image(
-                painter = painterResource(id = R.drawable.bg_card_module),
-                contentDescription = null,
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.FillBounds
-            )
-            Column(modifier = Modifier.padding(20.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "签到日历",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = EarthBrown,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "📅",
-                        fontSize = 20.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                CheckInCalendar(
-                    records = records,
-                    currentMonth = currentMonth,
-                    onMonthChange = onMonthChange
-                )
             }
         }
     }

@@ -1,0 +1,39 @@
+{
+  "name": "课灵 - AI学习助手",
+  "short_name": "课灵",
+  "description": "一款AI驱动的学习管理应用，让学习像培育星球一样有趣",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8F0",
+  "theme_color": "#E8A87C",
+  "icons": [
+    {
+      "src": "pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "AI助手",
+      "short_name": "AI",
+      "url": "/?screen=ai"
+    },
+    {
+      "name": "星球温室",
+      "short_name": "温室",
+      "url": "/?screen=greenhouse"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
+}

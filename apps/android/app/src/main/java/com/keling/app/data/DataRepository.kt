@@ -624,6 +624,171 @@ data class ChatHistoryEntry(
 )
 
 /**
+ * 签到记录数据仓库
+ */
+class CheckInRecordRepository(private val context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val RECORDS_KEY = stringPreferencesKey("check_in_records")
+
+    fun getRecords(): Flow<List<CheckInRecord>> {
+        return context.dataStore.data.map { prefs ->
+            val data = prefs[RECORDS_KEY] ?: "[]"
+            try {
+                json.decodeFromString<List<CheckInRecord>>(data)
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun saveRecords(records: List<CheckInRecord>) {
+        context.dataStore.edit { prefs ->
+            prefs[RECORDS_KEY] = json.encodeToString(records)
+        }
+    }
+}
+
+/**
+ * 学习记录数据仓库
+ */
+class StudyRecordRepository(private val context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val RECORDS_KEY = stringPreferencesKey("study_records")
+
+    fun getRecords(): Flow<List<StudyRecord>> {
+        return context.dataStore.data.map { prefs ->
+            val data = prefs[RECORDS_KEY] ?: "[]"
+            try {
+                json.decodeFromString<List<StudyRecord>>(data)
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun saveRecords(records: List<StudyRecord>) {
+        context.dataStore.edit { prefs ->
+            prefs[RECORDS_KEY] = json.encodeToString(records)
+        }
+    }
+}
+
+/**
+ * 成就数据仓库
+ */
+class AchievementRepository(private val context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val ACHIEVEMENTS_KEY = stringPreferencesKey("achievements_unlocked")
+
+    /**
+     * 获取已解锁的成就ID列表
+     */
+    fun getUnlockedIds(): Flow<List<String>> {
+        return context.dataStore.data.map { prefs ->
+            val data = prefs[ACHIEVEMENTS_KEY] ?: "[]"
+            try {
+                json.decodeFromString<List<String>>(data)
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun saveUnlockedIds(ids: List<String>) {
+        context.dataStore.edit { prefs ->
+            prefs[ACHIEVEMENTS_KEY] = json.encodeToString(ids)
+        }
+    }
+}
+
+/**
+ * 学习会话数据仓库
+ */
+class StudySessionRepository(private val context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val SESSIONS_KEY = stringPreferencesKey("study_sessions")
+
+    fun getSessions(): Flow<List<StudySession>> {
+        return context.dataStore.data.map { prefs ->
+            val data = prefs[SESSIONS_KEY] ?: "[]"
+            try {
+                json.decodeFromString<List<StudySession>>(data)
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun saveSessions(sessions: List<StudySession>) {
+        context.dataStore.edit { prefs ->
+            prefs[SESSIONS_KEY] = json.encodeToString(sessions)
+        }
+    }
+}
+
+/**
+ * 番茄钟设置数据仓库
+ */
+class PomodoroSettingsRepository(private val context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val SETTINGS_KEY = stringPreferencesKey("pomodoro_settings")
+
+    fun getSettings(): Flow<PomodoroSettings> {
+        return context.dataStore.data.map { prefs ->
+            val data = prefs[SETTINGS_KEY]
+            try {
+                if (data != null) json.decodeFromString<PomodoroSettings>(data) else PomodoroSettings()
+            } catch (e: Exception) {
+                PomodoroSettings()
+            }
+        }
+    }
+
+    suspend fun saveSettings(settings: PomodoroSettings) {
+        context.dataStore.edit { prefs ->
+            prefs[SETTINGS_KEY] = json.encodeToString(settings)
+        }
+    }
+}
+
+/**
+ * 笔记附件数据仓库
+ */
+class NoteAttachmentRepository(private val context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private val ATTACHMENTS_KEY = stringPreferencesKey("note_attachments")
+
+    fun getAttachments(): Flow<Map<String, List<NoteAttachment>>> {
+        return context.dataStore.data.map { prefs ->
+            val data = prefs[ATTACHMENTS_KEY] ?: "{}"
+            try {
+                json.decodeFromString<Map<String, List<NoteAttachment>>>(data)
+            } catch (e: Exception) {
+                emptyMap()
+            }
+        }
+    }
+
+    suspend fun saveAttachments(attachments: Map<String, List<NoteAttachment>>) {
+        context.dataStore.edit { prefs ->
+            prefs[ATTACHMENTS_KEY] = json.encodeToString(attachments)
+        }
+    }
+}
+
+/**
  * 数据仓库聚合类
  */
 class DataRepository(context: Context) {
@@ -633,4 +798,10 @@ class DataRepository(context: Context) {
     val notes: NoteDataRepository = NoteDataRepository(context)
     val knowledgeGraph: KnowledgeGraphRepository = KnowledgeGraphRepository(context)
     val chatHistory: ChatHistoryRepository = ChatHistoryRepository(context)
+    val checkInRecords: CheckInRecordRepository = CheckInRecordRepository(context)
+    val studyRecords: StudyRecordRepository = StudyRecordRepository(context)
+    val achievements: AchievementRepository = AchievementRepository(context)
+    val studySessions: StudySessionRepository = StudySessionRepository(context)
+    val pomodoroSettings: PomodoroSettingsRepository = PomodoroSettingsRepository(context)
+    val noteAttachments: NoteAttachmentRepository = NoteAttachmentRepository(context)
 }

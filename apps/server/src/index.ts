@@ -21,11 +21,23 @@ export const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// 中间件
-app.use(cors({
-  origin: true, // 允许所有来源
-  credentials: true
-}));
+// 中间件 - 手动设置CORS以确保正确
+app.use((req, res, next) => {
+  const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:3000', 'https://web-ashy-rho-36.vercel.app'];
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 
 // API 路由
@@ -52,18 +64,22 @@ app.get('/api/health', (req, res) => {
 
 // 最新版本信息（可通过环境变量或数据库配置）
 const APP_VERSION = {
-  versionCode: 5,        // 比当前APK的versionCode(4)大
-  versionName: '3.0.5',  // 新版本号
+  versionCode: 7,        // 当前最新版本号
+  versionName: '3.0.8',  // 当前版本名
   minVersionCode: 1,     // 最低支持版本
   updateUrl: 'https://keling-server.onrender.com/api/app/download',  // APK下载地址
-  updateLog: `【课灵 3.0.5 更新内容】
+  updateLog: `【课灵 3.0.8 更新内容】
 ✨ 新增数据本地持久化，退出APP数据不丢失
 ✨ 知识图谱支持可拖动编辑、曲线箭头连接
 ✨ 笔记编辑器支持字体大小、颜色、高亮、分类
 ✨ 个人中心头像显示用户头像
+✨ 固定底部导航栏，优化退出逻辑
+✨ 签到日历移至首页
+✨ 移动端添加网页端链接，网页端添加移动端下载链接
 ✨ 优化检查更新功能，增加加载状态和错误提示
 🔧 修复星球图像显示问题
-🔧 修复数据不保存问题`,
+🔧 修复数据不保存问题
+🔧 修复底部导航栏与页面协调问题`,
   forceUpdate: false,    // 是否强制更新
   fileSize: 50 * 1024 * 1024  // APK文件大小(字节)
 };

@@ -21,9 +21,12 @@ import kotlinx.serialization.json.Json
  * API配置
  */
 object ApiConfig {
-    // 后端服务器地址 - 开发时使用本地地址
+    // 后端服务器地址 - 生产环境
+    const val BASE_URL = "https://keling-server.onrender.com/api"
+
+    // 开发调试时可使用本地地址
     // 真机上需要改成电脑的局域网IP，如 http://192.168.1.100:3001
-    const val BASE_URL = "http://10.0.2.2:3001/api"  // Android模拟器访问本机
+    // const val BASE_URL = "http://10.0.2.2:3001/api"  // Android模拟器访问本机
 
     // 也可以动态设置
     var customBaseUrl: String? = null

@@ -217,9 +217,15 @@ class AICoordinator(
 - 如果用户表达挫败，先共情再给建议
 
 【工具指令规范（非常重要）】
-- 在回答末尾单独一行输出 JSON
-- 格式：{"action":"ACTION_TYPE","params":{...}}
+- 在回答末尾单独一行或几行输出 JSON
+- 单个指令格式：{"action":"ACTION_TYPE","params":{...}}
+- 多个指令格式（用数组）：[{"action":"CREATE_TASK","params":{...}},{"action":"GO_TO","params":{...}}]
 - 无操作时：{"action":"NO_ACTION","params":{}}
+
+【多指令执行】
+- 当用户要求执行多个操作时，可以一次返回多个指令
+- 例如："帮我创建三个复习任务并跳转到任务页" → 返回包含3个CREATE_TASK和1个GO_TO的数组
+- 所有指令会按顺序依次执行
 
 【工具指令示例】
 - 创建任务：{"action":"CREATE_TASK","params":{"title":"复习高数","estimatedMinutes":30}}
@@ -428,22 +434,88 @@ ${scenarioPrompt ?: ""}
 
     /**
      * 从模型返回的完整文本中抽取自然语言内容 + JSON 工具指令
-     * 改进版本：支持多行 JSON 和更复杂的格式
+     * 改进版本：支持多行 JSON、数组和更复杂的格式
      */
     private fun extractToolCommand(raw: String): Pair<String, String?> {
         if (raw.isBlank()) return raw to null
 
-        // 方法1：尝试从文本末尾提取 JSON 对象
         val trimmed = raw.trimEnd()
 
-        // 查找最后一个完整的 JSON 对象
+        // 方法1：尝试提取 JSON 数组（多个指令）
+        val arrayResult = extractJsonArray(trimmed)
+        if (arrayResult != null) {
+            return arrayResult
+        }
+
+        // 方法2：尝试提取单个 JSON 对象
+        val objectResult = extractJsonObject(trimmed)
+        if (objectResult != null) {
+            return objectResult
+        }
+
+        return raw to null
+    }
+
+    /**
+     * 尝试提取 JSON 数组（多指令格式）
+     */
+    private fun extractJsonArray(text: String): Pair<String, String?>? {
+        // 查找以 [ 开头的 JSON 数组
+        var bracketCount = 0
+        var jsonStartIndex = -1
+        var jsonEndIndex = -1
+
+        for (i in text.length - 1 downTo 0) {
+            val char = text[i]
+            if (char == ']') {
+                if (jsonEndIndex == -1) jsonEndIndex = i
+                bracketCount++
+            } else if (char == '[') {
+                bracketCount--
+                if (bracketCount == 0 && jsonEndIndex != -1) {
+                    jsonStartIndex = i
+                    break
+                }
+            }
+        }
+
+        if (jsonStartIndex != -1 && jsonEndIndex != -1) {
+            val jsonStr = text.substring(jsonStartIndex, jsonEndIndex + 1).trim()
+            val contentBefore = text.substring(0, jsonStartIndex).trimEnd()
+
+            // 验证是否是有效的工具命令数组
+            val isValid = try {
+                val jsonElement = kotlinx.serialization.json.Json.parseToJsonElement(jsonStr)
+                if (jsonElement is kotlinx.serialization.json.JsonArray) {
+                    jsonElement.isNotEmpty() &&
+                    jsonElement.all { item ->
+                        item.jsonObject.containsKey("action")
+                    }
+                } else {
+                    false
+                }
+            } catch (e: Exception) {
+                false
+            }
+
+            if (isValid && contentBefore.isNotEmpty()) {
+                return contentBefore to jsonStr
+            }
+        }
+
+        return null
+    }
+
+    /**
+     * 尝试提取单个 JSON 对象
+     */
+    private fun extractJsonObject(text: String): Pair<String, String?>? {
         var braceCount = 0
         var jsonStartIndex = -1
         var jsonEndIndex = -1
 
-        // 从后向前扫描，找到最后一个完整的 JSON 对象
-        for (i in trimmed.length - 1 downTo 0) {
-            val char = trimmed[i]
+        for (i in text.length - 1 downTo 0) {
+            val char = text[i]
             if (char == '}') {
                 if (jsonEndIndex == -1) jsonEndIndex = i
                 braceCount++
@@ -456,11 +528,9 @@ ${scenarioPrompt ?: ""}
             }
         }
 
-        // 如果找到了完整的 JSON 对象
         if (jsonStartIndex != -1 && jsonEndIndex != -1) {
-            val jsonStr = trimmed.substring(jsonStartIndex, jsonEndIndex + 1).trim()
+            val jsonStr = text.substring(jsonStartIndex, jsonEndIndex + 1).trim()
 
-            // 验证是否是有效的工具命令 JSON
             val isValidToolCommand = try {
                 val jsonElement = kotlinx.serialization.json.Json.parseToJsonElement(jsonStr).jsonObject
                 jsonElement.containsKey("action")
@@ -469,16 +539,15 @@ ${scenarioPrompt ?: ""}
             }
 
             if (isValidToolCommand) {
-                // 提取 JSON 之前的内容
-                val contentBefore = trimmed.substring(0, jsonStartIndex).trimEnd()
-                return (if (contentBefore.isNotEmpty()) contentBefore else raw) to jsonStr
+                val contentBefore = text.substring(0, jsonStartIndex).trimEnd()
+                return (if (contentBefore.isNotEmpty()) contentBefore else text) to jsonStr
             }
         }
 
-        // 方法2：检查最后一行是否是单行 JSON（兼容旧逻辑）
-        val lines = raw.lines()
+        // 检查最后一行是否是单行 JSON
+        val lines = text.lines()
         val lastNonBlankIndex = lines.indexOfLast { it.isNotBlank() }
-        if (lastNonBlankIndex != -1 && lastNonBlankIndex >= 0) {
+        if (lastNonBlankIndex >= 0) {
             val lastLine = lines[lastNonBlankIndex].trim()
             if (lastLine.startsWith("{") && lastLine.endsWith("}")) {
                 val isValidToolCommand = try {
@@ -491,12 +560,12 @@ ${scenarioPrompt ?: ""}
                 if (isValidToolCommand) {
                     val contentLines = if (lastNonBlankIndex == 0) emptyList() else lines.subList(0, lastNonBlankIndex)
                     val cleanContent = contentLines.joinToString("\n").trimEnd()
-                    return (if (cleanContent.isNotEmpty()) cleanContent else raw) to lastLine
+                    return (if (cleanContent.isNotEmpty()) cleanContent else text) to lastLine
                 }
             }
         }
 
-        return raw to null
+        return null
     }
 
     /**

@@ -1,13 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>keling-web</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+
+    <!-- PWA 主色 -->
+    <meta name="theme-color" content="#E8A87C" />
+
+    <!-- iOS Safari 配置 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="课灵" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- iOS 启动画面配置 -->
+    <link rel="apple-touch-startup-image" href="/apple-touch-icon.png" />
+
+    <!-- 其他移动端优化 -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-TileColor" content="#E8A87C" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- SEO -->
+    <meta name="description" content="课灵 - 一款AI驱动的学习管理应用，让学习像培育星球一样有趣" />
+    <meta name="keywords" content="课灵,学习,AI,知识管理,学习计划,学习助手" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="课灵 - AI学习助手" />
+    <meta property="og:description" content="一款AI驱动的学习管理应用，让学习像培育星球一样有趣" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/pwa-512x512.png" />
+
+    <title>课灵 - AI学习助手</title>
+
+    <style>
+      /* iOS Safari 启动时的背景色，避免白屏 */
+      html, body {
+        background-color: #FFF8F0;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- PWA 注册脚本（由vite-plugin-pwa自动生成） -->
+    <script>
+      // 检测iOS设备并提示添加到主屏幕
+      (function() {
+        // 检测是否在独立模式下运行
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+          || window.navigator.standalone === true;
+
+        // 检测iOS设备
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        // 如果是iOS且不是独立模式，显示提示
+        if (isIOS && !isStandalone) {
+          let shown = sessionStorage.getItem('pwa-prompt-shown');
+          if (!shown) {
+            // 延迟显示，等待用户浏览一会儿
+            setTimeout(function() {
+              sessionStorage.setItem('pwa-prompt-shown', 'true');
+            }, 3000);
+          }
+        }
+      })();
+    </script>
   </body>
 </html>

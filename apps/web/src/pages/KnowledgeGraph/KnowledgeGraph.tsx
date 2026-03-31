@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ZoomIn, ZoomOut, Plus, X, ChevronRight, ArrowLeft
+  ZoomIn, ZoomOut, Plus, X, ArrowLeft
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { knowledgeAPI } from '../../services/api';

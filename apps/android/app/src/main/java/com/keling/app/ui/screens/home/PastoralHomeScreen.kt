@@ -56,10 +56,13 @@ import com.keling.app.R
 import com.keling.app.data.Course
 import com.keling.app.data.Task
 import com.keling.app.data.TaskStatus
+import com.keling.app.data.CheckInRecord
 import com.keling.app.ui.theme.*
+import com.keling.app.ui.components.CheckInCalendar
 import com.keling.app.viewmodel.AppViewModel
 import kotlinx.coroutines.delay
 import java.util.Calendar
+import java.time.YearMonth
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -114,6 +117,10 @@ fun PastoralHomeScreen(
     val courses = viewModel.courses.value
     val tasks = viewModel.tasks.value
     val pendingTasks = tasks.count { it.status == TaskStatus.PENDING }
+    val checkInRecords = viewModel.checkInRecords.value
+
+    // 签到日历当前月份
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
     // 滚动状态用于视差效果
     val scrollState = rememberLazyListState()
@@ -154,6 +161,15 @@ fun PastoralHomeScreen(
                 )
             }
 
+            // ===== 签到日历 =====
+            item {
+                HomeCheckInCalendarSection(
+                    records = checkInRecords,
+                    currentMonth = currentMonth,
+                    onMonthChange = { currentMonth = it }
+                )
+            }
+
             // ===== 我的星球花园 =====
             item {
                 GlassmorphismSectionTitle(
@@ -174,11 +190,6 @@ fun PastoralHomeScreen(
                         onCourseClick = { viewModel.openCourseGreenhouse(it) }
                     )
                 }
-            }
-
-            // ===== 快捷入口 =====
-            item {
-                GlassmorphismQuickAccessSection(onNavigate = onNavigate)
             }
 
             // ===== 今日任务简报 =====
@@ -203,9 +214,9 @@ fun PastoralHomeScreen(
                 }
             }
 
-            // 底部留白
+            // 底部留白（为固定底栏留出空间）
             item {
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
@@ -2266,6 +2277,79 @@ private fun GlassmorphismTaskCard(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * 首页签到日历区块
+ */
+@Composable
+private fun HomeCheckInCalendarSection(
+    records: List<CheckInRecord>,
+    currentMonth: YearMonth,
+    onMonthChange: (YearMonth) -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "calendar")
+
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.08f,
+        targetValue = 0.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2500, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glow"
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    color = WarmSunOrange.copy(alpha = glowAlpha),
+                    cornerRadius = CornerRadius(24.dp.toPx()),
+                    size = Size(size.width + 6.dp.toPx(), size.height + 6.dp.toPx()),
+                    topLeft = Offset(-3.dp.toPx(), -3.dp.toPx())
+                )
+            },
+        shape = RoundedCornerShape(20.dp),
+        color = CreamWhite.copy(alpha = 0.9f),
+        shadowElevation = 0.dp
+    ) {
+        Box {
+            Image(
+                painter = painterResource(id = R.drawable.bg_card_module),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.FillBounds
+            )
+            Column(modifier = Modifier.padding(20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "签到日历",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = EarthBrown,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "📅",
+                        fontSize = 20.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                CheckInCalendar(
+                    records = records,
+                    currentMonth = currentMonth,
+                    onMonthChange = onMonthChange
+                )
             }
         }
     }

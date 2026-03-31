@@ -77,12 +77,12 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="home-page" style={{ backgroundImage: `url(${pageBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <div className="home-page" style={{ backgroundImage: `url(${pageBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}>
       <div className="content-wrapper">
       {/* 欢迎区域 */}
       <motion.div
         className="welcome-section"
-        style={{ backgroundImage: `url(${welcomeBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        style={{ backgroundImage: `url(${welcomeBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -113,28 +113,28 @@ const Home: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="stat-card" style={{ backgroundImage: `url(${energyStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="stat-card" style={{ backgroundImage: `url(${energyStatBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}>
           <div className="stat-icon energy"><img src={energyIcon} alt="能量" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.energy || 0}</span>
             <span className="stat-label">能量</span>
           </div>
         </div>
-        <div className="stat-card" style={{ backgroundImage: `url(${crystalsStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="stat-card" style={{ backgroundImage: `url(${crystalsStatBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}>
           <div className="stat-icon crystals"><img src={crystalsIcon} alt="结晶" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.crystals || 0}</span>
             <span className="stat-label">结晶</span>
           </div>
         </div>
-        <div className="stat-card" style={{ backgroundImage: `url(${tasksStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="stat-card" style={{ backgroundImage: `url(${tasksStatBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}>
           <div className="stat-icon tasks"><img src={tasksIcon} alt="任务" /></div>
           <div className="stat-content">
             <span className="stat-value">{pendingTasks.length}</span>
             <span className="stat-label">待完成任务</span>
           </div>
         </div>
-        <div className="stat-card" style={{ backgroundImage: `url(${streakStatBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="stat-card" style={{ backgroundImage: `url(${streakStatBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}>
           <div className="stat-icon streak"><img src={streakIcon} alt="连续签到" /></div>
           <div className="stat-content">
             <span className="stat-value">{user?.streakDays || 0}</span>
@@ -149,7 +149,7 @@ const Home: React.FC = () => {
           {/* AI 入口 */}
           <motion.div
             className="ai-card"
-            style={{ backgroundImage: `url(${aiBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            style={{ backgroundImage: `url(${aiBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -166,7 +166,7 @@ const Home: React.FC = () => {
           {/* 我的课程 */}
           <motion.section
             className="section"
-            style={{ backgroundImage: `url(${knowledgeBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            style={{ backgroundImage: `url(${knowledgeBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -215,7 +215,7 @@ const Home: React.FC = () => {
           {/* 今日任务 */}
           <motion.section
             className="section"
-            style={{ backgroundImage: `url(${tasksBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            style={{ backgroundImage: `url(${tasksBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -265,7 +265,7 @@ const Home: React.FC = () => {
           {/* 快捷入口 */}
           <motion.div
             className="quick-actions"
-            style={{ backgroundImage: `url(${quickEntryBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            style={{ backgroundImage: `url(${quickEntryBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -294,7 +294,7 @@ const Home: React.FC = () => {
           {/* 学习统计 */}
           <motion.div
             className="study-stats"
-            style={{ backgroundImage: `url(${weeklyStudyBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            style={{ backgroundImage: `url(${weeklyStudyBg})`, backgroundSize: '100% 100%', backgroundPosition: 'center' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}

@@ -102,6 +102,7 @@
 .setting-icon.guide { background: rgba(63, 81, 181, 0.2); color: #3F51B5; }
 .setting-icon.feedback { background: rgba(255, 152, 0, 0.2); color: #FF9800; }
 .setting-icon.about { background: rgba(121, 85, 72, 0.2); color: #795548; }
+.setting-icon.mobile { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
 
 .setting-content {
   flex: 1;
@@ -243,4 +244,27 @@
   font-size: 12px;
   color: var(--color-earth-brown-light);
   margin-bottom: 4px;
+}
+
+.about-links {
+  margin-bottom: 24px;
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  background: var(--color-moss-green);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.link-btn:hover {
+  background: var(--color-mint-green);
+  transform: translateY(-2px);
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.keling.app.R
@@ -31,7 +32,9 @@ import com.keling.app.ui.theme.*
 fun PastoralSettingsScreen(
     onBack: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onNavigateToAchievements: () -> Unit
+    onNavigateToAchievements: () -> Unit,
+    onLogout: () -> Unit = {},
+    onCheckUpdate: () -> Unit = {}
 ) {
     // 设置状态
     var notificationEnabled by remember { mutableStateOf(true) }
@@ -84,6 +87,12 @@ fun PastoralSettingsScreen(
                         title = "成就管理",
                         subtitle = "查看已解锁成就",
                         onClick = onNavigateToAchievements
+                    )
+                    SettingItem(
+                        icon = "🚪",
+                        title = "退出登录",
+                        subtitle = "切换账号或使用游客模式",
+                        onClick = onLogout
                     )
                 }
             }
@@ -139,6 +148,12 @@ fun PastoralSettingsScreen(
             item {
                 SettingsSection(title = "其他") {
                     SettingItem(
+                        icon = "🔄",
+                        title = "检查更新",
+                        subtitle = "检查是否有新版本",
+                        onClick = onCheckUpdate
+                    )
+                    SettingItem(
                         icon = "📖",
                         title = "使用指南",
                         subtitle = "了解如何使用课灵",
@@ -153,7 +168,7 @@ fun PastoralSettingsScreen(
                     SettingItem(
                         icon = "ℹ️",
                         title = "关于课灵",
-                        subtitle = "版本 3.0.0",
+                        subtitle = "版本 3.0.8",
                         onClick = { showAboutDialog = true }
                     )
                 }
@@ -372,6 +387,8 @@ fun SettingSwitchItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AboutDialog(onDismiss: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     AlertDialog(
         onDismissRequest = onDismiss
     ) {
@@ -383,34 +400,68 @@ private fun AboutDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_logo),
-                contentDescription = "课灵Logo",
-                modifier = Modifier.size(80.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "课灵",
-                style = MaterialTheme.typography.headlineSmall,
-                color = EarthBrown,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "版本 3.0.0",
-                style = MaterialTheme.typography.bodySmall,
-                color = EarthBrownLight
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "一款AI驱动的学习管理应用\n让学习像培育星球一样有趣",
-                style = MaterialTheme.typography.bodyMedium,
-                color = EarthBrown,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            TextButton(onClick = onDismiss) {
-                Text("关闭", color = WarmSunOrange)
+                Image(
+                    painter = painterResource(id = R.drawable.ic_logo),
+                    contentDescription = "课灵Logo",
+                    modifier = Modifier.size(80.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "课灵",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = EarthBrown,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "版本 3.0.8",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = EarthBrownLight
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "一款AI驱动的学习管理应用\n让学习像培育星球一样有趣",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = EarthBrown,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 网页端链接
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MintGreen.copy(alpha = 0.15f),
+                    modifier = Modifier.clickable {
+                        val intent = android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            android.net.Uri.parse("https://web-ashy-rho-36.vercel.app")
+                        )
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "🌐",
+                            fontSize = 18.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "访问网页版",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MintGreen,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                TextButton(onClick = onDismiss) {
+                    Text("关闭", color = WarmSunOrange)
+                }
             }
         }
     }

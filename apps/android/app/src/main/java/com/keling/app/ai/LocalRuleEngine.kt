@@ -446,22 +446,22 @@ class EnhancedLocalRuleEngine {
                     toolCommandJson = """{"action":"GO_TO","params":{"screen":"schedule_edit"}}"""
                 )
             }
-            target.contains("温室") || target.contains("星球") -> {
-                AIResponse(
-                    content = "好的，进入温室看看你的知识星球～",
-                    type = ResponseType.GENERAL,
-                    isFromAI = false,
-                    toolCommandJson = """{"action":"GO_TO","params":{"screen":"greenhouse"}}"""
-                )
-            }
-            // 尝试匹配课程名
-            ctx.courses.any { target.contains(it.name) } -> {
+            // 优先匹配课程名，支持"高数星球"、"去高数"、"查看高数"等表达
+            ctx.courses.any { course -> target.contains(course.name) } -> {
                 val course = ctx.courses.first { target.contains(it.name) }
                 AIResponse(
                     content = "好的，查看「${course.name}」的学习进度～",
                     type = ResponseType.GENERAL,
                     isFromAI = false,
                     toolCommandJson = """{"action":"GO_TO","params":{"screen":"greenhouse","courseId":"${course.id}"}}"""
+                )
+            }
+            target.contains("温室") || target.contains("星球") -> {
+                AIResponse(
+                    content = "好的，进入温室看看你的知识星球～",
+                    type = ResponseType.GENERAL,
+                    isFromAI = false,
+                    toolCommandJson = """{"action":"GO_TO","params":{"screen":"greenhouse"}}"""
                 )
             }
             else -> null

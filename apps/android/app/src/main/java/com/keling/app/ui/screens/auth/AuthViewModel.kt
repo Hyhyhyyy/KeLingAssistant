@@ -14,6 +14,7 @@ import com.keling.app.network.AuthResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -50,16 +51,23 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         get() = MutableStateFlow(_authState.value is AuthState.Authenticated).asStateFlow()
 
     init {
+        // 初始化时立即检查认证状态
         checkAuthState()
     }
 
     /**
      * 检查认证状态
+     * 使用 first() 只获取一次当前状态，避免持续监听
      */
     fun checkAuthState() {
         viewModelScope.launch {
-            authRepository.getAuthState().collect { state ->
-                _authState.value = state
+            // 先从 DataStore 获取当前状态
+            val state = authRepository.getAuthState().first()
+            _authState.value = state
+
+            // 然后开始持续监听状态变化
+            authRepository.getAuthState().collect { newState ->
+                _authState.value = newState
             }
         }
     }

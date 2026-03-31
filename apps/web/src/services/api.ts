@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://keling-server.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15秒超时
+  timeout: 30000, // 30秒超时，适应服务器唤醒
 });
 
 // 请求拦截器 - 添加 Token
