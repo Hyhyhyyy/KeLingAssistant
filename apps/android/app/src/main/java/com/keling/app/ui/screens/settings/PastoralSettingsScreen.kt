@@ -466,4 +466,3 @@ private fun AboutDialog(onDismiss: () -> Unit) {
         }
     }
 }
-}

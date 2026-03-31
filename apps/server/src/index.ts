@@ -62,13 +62,91 @@ app.get('/api/health', (req, res) => {
 
 // ==================== APP版本更新API ====================
 
-// 最新版本信息（可通过环境变量或数据库配置）
-const APP_VERSION = {
-  versionCode: 7,        // 当前最新版本号
-  versionName: '3.0.8',  // 当前版本名
-  minVersionCode: 1,     // 最低支持版本
-  updateUrl: 'https://keling-server.onrender.com/api/app/download',  // APK下载地址
-  updateLog: `【课灵 3.0.8 更新内容】
+// GitHub仓库配置
+const GITHUB_REPO_OWNER = 'Hyhyhyyy';
+const GITHUB_REPO_NAME = 'KeLingAssistant';
+
+// 缓存版本信息，避免频繁请求GitHub API
+let cachedVersionInfo: any = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
+
+// 从GitHub API获取最新Release信息
+async function fetchLatestRelease() {
+  const now = Date.now();
+
+  // 使用缓存
+  if (cachedVersionInfo && (now - cacheTimestamp) < CACHE_DURATION) {
+    return cachedVersionInfo;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/latest`,
+      {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'KeLing-Server'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    const release = await response.json();
+
+    // 解析版本信息
+    const versionName = release.tag_name.replace('v', '');
+
+    // 从APK文件名解析versionCode，或使用默认值
+    const apkAsset = release.assets?.find((a: any) => a.name.endsWith('.apk'));
+    const downloadUrl = apkAsset?.browser_download_url ||
+      `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/download/${release.tag_name}/KeLing-${release.tag_name}.apk`;
+
+    // 版本代码从版本名解析 (3.0.8 -> 308)
+    const versionCode = parseInt(versionName.replace(/\./g, '')) || 7;
+    const fileSize = apkAsset?.size || 50 * 1024 * 1024;
+
+    cachedVersionInfo = {
+      versionCode,
+      versionName,
+      minVersionCode: 1,
+      updateUrl: downloadUrl,
+      updateLog: release.body || generateDefaultChangelog(versionName),
+      forceUpdate: false,
+      fileSize,
+      releaseDate: release.published_at,
+      htmlUrl: release.html_url
+    };
+
+    cacheTimestamp = now;
+    return cachedVersionInfo;
+  } catch (error) {
+    console.error('Failed to fetch GitHub release:', error);
+
+    // 返回默认版本信息
+    return getDefaultVersionInfo();
+  }
+}
+
+// 默认版本信息（当GitHub API不可用时）
+function getDefaultVersionInfo() {
+  return {
+    versionCode: 7,
+    versionName: '3.0.8',
+    minVersionCode: 1,
+    updateUrl: `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/latest`,
+    updateLog: generateDefaultChangelog('3.0.8'),
+    forceUpdate: false,
+    fileSize: 50 * 1024 * 1024
+  };
+}
+
+// 生成默认更新日志
+function generateDefaultChangelog(version: string) {
+  return `【课灵 ${version} 更新内容】
 ✨ 新增数据本地持久化，退出APP数据不丢失
 ✨ 知识图谱支持可拖动编辑、曲线箭头连接
 ✨ 笔记编辑器支持字体大小、颜色、高亮、分类
@@ -79,47 +157,58 @@ const APP_VERSION = {
 ✨ 优化检查更新功能，增加加载状态和错误提示
 🔧 修复星球图像显示问题
 🔧 修复数据不保存问题
-🔧 修复底部导航栏与页面协调问题`,
-  forceUpdate: false,    // 是否强制更新
-  fileSize: 50 * 1024 * 1024  // APK文件大小(字节)
-};
+🔧 修复底部导航栏与页面协调问题`;
+}
 
 // 版本检查接口
-app.get('/api/app/version', (req, res) => {
+app.get('/api/app/version', async (req, res) => {
   const clientVersionCode = parseInt(req.query.versionCode as string) || 0;
   const clientVersionName = req.query.versionName as string || '0.0.0';
 
-  // 判断是否需要更新
-  const needUpdate = clientVersionCode < APP_VERSION.versionCode;
-  const forceUpdate = clientVersionCode < APP_VERSION.minVersionCode;
+  try {
+    const latestVersion = await fetchLatestRelease();
 
-  res.json({
-    success: true,
-    currentVersion: {
-      versionCode: clientVersionCode,
-      versionName: clientVersionName
-    },
-    latestVersion: {
-      versionCode: APP_VERSION.versionCode,
-      versionName: APP_VERSION.versionName,
-      updateUrl: APP_VERSION.updateUrl,
-      updateLog: APP_VERSION.updateLog,
-      fileSize: APP_VERSION.fileSize
-    },
-    needUpdate,
-    forceUpdate
-  });
+    // 判断是否需要更新
+    const needUpdate = clientVersionCode < latestVersion.versionCode;
+    const forceUpdate = clientVersionCode < latestVersion.minVersionCode;
+
+    res.json({
+      success: true,
+      currentVersion: {
+        versionCode: clientVersionCode,
+        versionName: clientVersionName
+      },
+      latestVersion: {
+        versionCode: latestVersion.versionCode,
+        versionName: latestVersion.versionName,
+        updateUrl: latestVersion.updateUrl,
+        updateLog: latestVersion.updateLog,
+        fileSize: latestVersion.fileSize
+      },
+      needUpdate,
+      forceUpdate
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: 'Failed to check version',
+      currentVersion: {
+        versionCode: clientVersionCode,
+        versionName: clientVersionName
+      }
+    });
+  }
 });
 
-// APK下载接口（重定向到实际文件）
-app.get('/api/app/download', (req, res) => {
-  // 这里可以重定向到CDN或直接提供文件
-  // 目前返回提示信息，实际APK文件需要托管在CDN或服务器上
-  res.json({
-    message: 'APK下载功能',
-    downloadUrl: 'https://github.com/your-repo/releases/latest',  // 可替换为实际下载地址
-    note: '实际部署时请将APK文件托管在CDN或对象存储服务'
-  });
+// APK下载接口（重定向到GitHub Release）
+app.get('/api/app/download', async (req, res) => {
+  try {
+    const latestVersion = await fetchLatestRelease();
+    res.redirect(latestVersion.updateUrl);
+  } catch (error) {
+    // 重定向到GitHub Releases页面
+    res.redirect(`https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/latest`);
+  }
 });
 
 // 错误处理中间件

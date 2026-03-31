@@ -33,8 +33,8 @@ const Settings: React.FC = () => {
   };
 
   const handleDownloadApp = () => {
-    // 打开APK下载页面
-    window.open('https://github.com/keling/keling/releases', '_blank');
+    // 打开GitHub Releases页面下载APK
+    window.open('https://github.com/Hyhyhyyy/KeLingAssistant/releases/latest', '_blank');
   };
 
   return (

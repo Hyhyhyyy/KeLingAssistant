@@ -1,0 +1,79 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x apps/android/gradlew
+
+      - name: Build Release APK
+        run: |
+          cd apps/android
+          ./gradlew assembleRelease
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION_NAME=$(grep "versionName" apps/android/app/build.gradle.kts | head -1 | sed 's/.*versionName = "//' | sed 's/"$//')
+          VERSION_CODE=$(grep "versionCode" apps/android/app/build.gradle.kts | head -1 | sed 's/.*versionCode = //' | tr -d ' ')
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: |
+          mv apps/android/app/build/outputs/apk/release/app-release.apk \
+             KeLing-v${{ steps.version.outputs.VERSION_NAME }}.apk
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: 课灵 v${{ steps.version.outputs.VERSION_NAME }}
+          body: |
+            ## 课灵 v${{ steps.version.outputs.VERSION_NAME }}
+
+            ### 更新内容
+            ✨ 新增数据本地持久化，退出APP数据不丢失
+            ✨ 知识图谱支持可拖动编辑、曲线箭头连接
+            ✨ 笔记编辑器支持字体大小、颜色、高亮、分类
+            ✨ 个人中心头像显示用户头像
+            ✨ 固定底部导航栏，优化退出逻辑
+            ✨ 签到日历移至首页
+            ✨ 移动端添加网页端链接，网页端添加移动端下载链接
+            ✨ 优化检查更新功能，增加加载状态和错误提示
+            🔧 修复星球图像显示问题
+            🔧 修复数据不保存问题
+            🔧 修复底部导航栏与页面协调问题
+
+            ### 版本信息
+            - 版本号: ${ version_name }
+            - 版本代码: ${ version_code }
+            - 最低Android版本: Android 8.0 (API 26)
+
+            ### 下载
+            [下载APK](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/KeLing-v${{ steps.version.outputs.VERSION_NAME }}.apk)
+          files: KeLing-v${{ steps.version.outputs.VERSION_NAME }}.apk
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update server version info
+        run: |
+          echo "Release created successfully!"
+          echo "Download URL: https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/KeLing-v${{ steps.version.outputs.VERSION_NAME }}.apk"
