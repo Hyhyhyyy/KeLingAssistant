@@ -78,6 +78,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-page" style={{ backgroundImage: `url(${pageBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <div className="content-wrapper">
       {/* 欢迎区域 */}
       <motion.div
         className="welcome-section"
@@ -341,6 +342,7 @@ const Home: React.FC = () => {
           </motion.div>
         </div>
       )}
+      </div>
     </div>
   );
 };
